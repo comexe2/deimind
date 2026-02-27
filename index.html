@@ -62,7 +62,7 @@
             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-20 mix-blend-overlay"></div>
             <div class="absolute bottom-0 w-full h-2/3 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none"></div>
             
-            <img id="ui-standing" src="" alt="데이다 스탠딩" 
+            <img id="ui-standing" src="" alt="데이다라 스탠딩" 
                  onerror="this.src='https://placehold.co/400x500/000000/ef4444/png?text=Standing\\nImage\\nNot+Found'" 
                  class="h-[110%] object-contain object-bottom relative z-0 mt-auto drop-shadow-[0_10px_25px_rgba(250,204,21,0.15)] transition-all duration-500 opacity-95 hover:opacity-100">
             
@@ -164,8 +164,8 @@
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // [🛑 필수 설정 1: Firebase 설정 코드 넣기 🛑]
-        // 연지 님이 올려주신 Firebase 코드를 올바른 형식으로 세팅했습니다!
+        // [🛑 필수 설정 1: Firebase 설정 코드 수정 완료 🛑]
+        // 연지 님이 주신 코드를 오류가 나지 않도록 알맞은 형태로 세팅했습니다!
         // =========================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
@@ -173,7 +173,8 @@
             projectId: "deidara-70f6e",
             storageBucket: "deidara-70f6e.firebasestorage.app",
             messagingSenderId: "183278137031",
-            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2"
+            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
+            measurementId: "G-48XSYZ5F6L"
         };
 
         // =========================================================================
@@ -437,97 +438,4 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
                     const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (textResult) return JSON.parse(textResult);
-                } catch (error) {
-                    if (i === delays.length - 1) return null;
-                    await new Promise(r => setTimeout(r, delays[i]));
-                }
-            }
-        }
-
-        // 탭 및 전송 이벤트
-        let currentTab = 'vent';
-        window.switchTab = function(tab) {
-            currentTab = tab;
-            ['vent', 'reframe', 'smallwin', 'motivate', 'breakdown'].forEach(t => {
-                const btn = document.getElementById(`tab-${t}`);
-                btn.classList.remove('tab-active');
-                btn.classList.add('text-zinc-500');
-                const form = document.getElementById(`form-${t}`);
-                form.classList.add('hidden');
-                form.classList.remove('block');
-            });
-            document.getElementById(`tab-${tab}`).classList.add('tab-active');
-            document.getElementById(`tab-${tab}`).classList.remove('text-zinc-500');
-            document.getElementById(`form-${tab}`).classList.remove('hidden');
-            document.getElementById(`form-${tab}`).classList.add('block');
-        }
-
-        window.handleSubmit = async function() {
-            if (!currentUser) {
-                alert("구글 로그인을 먼저 진행해주세요!");
-                return;
-            }
-
-            const btn = document.getElementById('submit-btn');
-            let userText = "", logText = "", reframeGood = "";
-
-            if (currentTab === 'vent') {
-                const input = document.getElementById('input-vent');
-                if (!input.value.trim()) return;
-                userText = input.value; logText = input.value;
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'reframe') {
-                const inputBad = document.getElementById('input-reframe-bad');
-                const inputGood = document.getElementById('input-reframe-good');
-                if (!inputBad.value.trim() || !inputGood.value.trim()) return;
-                userText = `부정적 생각: ${inputBad.value} -> 관대한 생각: ${inputGood.value}`;
-                logText = inputBad.value; reframeGood = inputGood.value;
-                inputBad.value = inputGood.value = ''; await saveMessage('user', logText, true, reframeGood);
-            } else if (currentTab === 'smallwin') {
-                const input = document.getElementById('input-smallwin');
-                if (!input.value.trim()) return;
-                userText = `오늘 해낸 일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'motivate') {
-                const input = document.getElementById('input-motivate');
-                if (!input.value.trim()) return;
-                userText = `도피하고 있는 과제/일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'breakdown') {
-                const input = document.getElementById('input-breakdown');
-                if (!input.value.trim()) return;
-                userText = `막막한 큰 목표: ${input.value} (목표 쪼개기 요청)`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            }
-
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
-            const loadingId = showLoading();
-
-            const aiResponse = await callGeminiAPI(userText, currentTab);
-
-            removeLoading(loadingId);
-            btn.disabled = false;
-            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
-
-            if (aiResponse && aiResponse.deidara) {
-                const emotion = aiResponse.emotion || "default";
-                await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
-            } else {
-                await saveMessage('deidara', "통신 장치가 터져버렸잖아! 잠시 후에 다시 시도해봐라, 음.", false, '', 'angry');
-            }
-        }
-
-        document.querySelectorAll('input, textarea').forEach(el => {
-            el.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    window.handleSubmit();
-                }
-            });
-        });
-
-    </script>
-</body>
-</html>
+                    if (textResult) return JSON.parse(text
