@@ -41,15 +41,22 @@
 <body class="flex items-center justify-center min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-black sm:p-4">
 
     <!-- 구글 로그인 오버레이 -->
-    <div id="login-overlay" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
+    <div id="login-overlay" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
         <img id="login-profile" src="" class="w-24 h-24 rounded-full border-4 border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.5)] mb-6 object-cover" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'">
         <h2 class="text-2xl font-extrabold text-yellow-400 mb-2">마음 아지트 연결 중...</h2>
         <p class="text-zinc-400 text-sm mb-8 max-w-xs leading-relaxed">
             PC와 모바일 동기화를 위해 구글 로그인이 필요하다. 딴 데 한눈팔지 말고 얼른 로그인해라, 음!
         </p>
-        <button id="btn-google-login" class="bg-white text-black px-6 py-3 rounded-full font-bold text-[15px] flex items-center gap-3 hover:bg-zinc-200 transition-colors shadow-lg">
+        
+        <!-- 로그인 버튼 -->
+        <button id="btn-google-login" class="bg-white text-black px-6 py-3.5 rounded-full font-bold text-[15px] flex items-center gap-3 hover:bg-zinc-200 transition-colors shadow-lg active:scale-95">
             <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
             구글 계정으로 시작하기
+        </button>
+
+        <!-- 건너뛰기 버튼 (최후의 보루) -->
+        <button id="btn-skip-login" class="mt-8 text-zinc-500 text-sm underline decoration-zinc-600 hover:text-zinc-300 transition-colors">
+            로그인이 안 된다면 여기를 눌러서 시작 (오프라인 모드)
         </button>
     </div>
 
@@ -217,14 +224,21 @@
         const chatContainer = document.getElementById('chat-container');
 
         // =========================================================================
-        // [🚀 로그인 및 인앱 브라우저 차단 로직 🚀]
+        // [🚀 로그인 무한 로딩 차단 및 해결 로직 🚀]
         // =========================================================================
         
-        // 카카오톡, 네이버, 인스타그램 등 앱 내장 브라우저인지 확인
+        // 오프라인으로 강제 시작하기 버튼
+        document.getElementById('btn-skip-login').addEventListener('click', () => {
+            const overlay = document.getElementById('login-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.style.display = 'none', 500);
+            document.getElementById('sync-status').innerText = '오프라인 모드 (동기화 불가)';
+            currentUser = null;
+        });
+
         const isAppBrowser = navigator.userAgent.match(/kakaotalk|instagram|naver|line/i);
 
         if (isAppBrowser) {
-            // 카카오톡 등에서는 로그인이 무조건 튕기므로 경고창 띄우기
             const overlay = document.getElementById('login-overlay');
             overlay.innerHTML = `
                 <div class="bg-zinc-900 p-6 rounded-3xl border-2 border-red-500 shadow-[0_0_30px_rgba(220,38,38,0.3)] max-w-sm w-full mx-4 flex flex-col items-center">
@@ -243,7 +257,7 @@
             `;
             lucide.createIcons();
         } else {
-            // 정상 브라우저 구글 로그인 (안전한 Popup 방식으로 원복)
+            // 정상 브라우저 구글 로그인
             const btnLogin = document.getElementById('btn-google-login');
             btnLogin.addEventListener('click', async () => {
                 const originalHtml = btnLogin.innerHTML;
@@ -258,8 +272,16 @@
                 btnLogin.classList.add('opacity-50', 'pointer-events-none');
 
                 try {
-                    await signInWithPopup(auth, provider);
-                    // 성공 시 아래 onAuthStateChanged가 화면을 넘겨줌
+                    const result = await signInWithPopup(auth, provider);
+                    
+                    // [핵심 변경] 브라우저가 신호를 씹어도, 여기서 강제로 화면을 넘겨버립니다!
+                    currentUser = result.user;
+                    document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (연동됨)';
+                    const overlay = document.getElementById('login-overlay');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 500);
+                    loadChatHistory();
+
                 } catch (error) {
                     console.error("Login Error:", error);
                     btnLogin.innerHTML = originalHtml;
@@ -267,7 +289,7 @@
                     lucide.createIcons();
                     
                     if (error.code === 'auth/unauthorized-domain') {
-                        alert(`[도메인 인증 오류]\n\nFirebase 콘솔에 접속하여 로그인 권한을 허용해야 합니다.\n\n해결 방법:\n1. Firebase 콘솔 접속\n2. Authentication 메뉴 선택\n3. Settings(설정) 탭 -> 승인된 도메인 선택\n4. [ ${window.location.hostname} ] 주소를 도메인 목록에 추가해주세요.`);
+                        alert(`[도메인 승인 오류!]\n\n파이어베이스에 다음 주소가 등록되지 않았습니다:\n[ ${window.location.hostname} ]\n\nFirebase 콘솔 -> Authentication -> Settings -> 승인된 도메인에 위 주소를 정확히 추가해주세요.`);
                     } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                         alert("로그인 요청에 실패했습니다: " + error.message);
                     }
@@ -275,7 +297,7 @@
             });
         }
 
-        // 로그인 상태 감지 (성공 시 화면 전환)
+        // 로그인 상태 감지 (최초 접속 시 확인용)
         onAuthStateChanged(auth, (user) => {
             const overlay = document.getElementById('login-overlay');
             if (user) {
@@ -292,9 +314,7 @@
             }
         });
 
-        // =========================================================================
-        // [💬 채팅 UI 렌더링 함수 💬]
-        // =========================================================================
+        // UI 렌더링 함수
         function scrollToBottom() {
             chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' });
         }
@@ -381,26 +401,32 @@
         // Firestore 연동
         function loadChatHistory() {
             if (!db || !currentUser) return;
-            const chatsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'chats');
-            
-            onSnapshot(chatsRef, (snapshot) => {
-                const msgs = [];
-                snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
-                
-                msgs.sort((a, b) => a.timestamp - b.timestamp);
+            try {
+                const chatsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'chats');
+                onSnapshot(chatsRef, (snapshot) => {
+                    const msgs = [];
+                    snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
+                    
+                    msgs.sort((a, b) => a.timestamp - b.timestamp);
 
-                msgs.forEach(msg => {
-                    if (!renderedMsgIds.has(msg.id)) {
-                        renderedMsgIds.add(msg.id);
-                        if (msg.role === 'user') {
-                            renderUserMessage(msg.text, msg.isReframe, msg.reframeGood);
-                        } else if (msg.role === 'deidara') {
-                            renderDeidaraMessage(msg.text);
-                            if(msg.emotion) updateStandingImage(msg.emotion);
+                    msgs.forEach(msg => {
+                        if (!renderedMsgIds.has(msg.id)) {
+                            renderedMsgIds.add(msg.id);
+                            if (msg.role === 'user') {
+                                renderUserMessage(msg.text, msg.isReframe, msg.reframeGood);
+                            } else if (msg.role === 'deidara') {
+                                renderDeidaraMessage(msg.text);
+                                if(msg.emotion) updateStandingImage(msg.emotion);
+                            }
                         }
-                    }
+                    });
+                }, (error) => {
+                    console.error("Firestore onSnapshot Error:", error);
+                    alert("데이터베이스 접근 오류: " + error.message);
                 });
-            }, (error) => console.error("Firestore onSnapshot Error:", error));
+            } catch(e) {
+                console.error("loadChatHistory Error:", e);
+            }
         }
 
         async function saveMessage(role, text, isReframe = false, reframeGood = '', emotion = 'default') {
@@ -431,145 +457,4 @@
 - 절대 규칙: 자신의 예술(폭발)을 깎아내리는 발언에는 절대 순응하지 않고 화를 내거나 강하게 반발함.
 - 말투: 건방지고 자신감 넘치는 반말. "어이", "네 녀석", "바보냐" 같은 호칭 사용.
 - 어미 '음(うん)' 규칙: 모든 문장에 로봇처럼 '음'을 붙이는 것을 절대 금지함. 대답 전체에서 가장 마지막 문장이나, 특별히 강조할 때만 가끔씩(1회 정도) 자연스럽게 붙일 것.
-- 금지: '흥'이라는 추임새를 너무 남발하지 말 것. 오글거리는 연애 멘트 금지.
-
-[사용자(연지) 정보 및 관계]
-- 사용자: 연지 (불안장애, 우울증, 완벽주의, 비교로 인한 무기력증을 겪음)
-- 관계: 짝사랑과 미묘한 썸 사이. 연지가 데이다라에게 적극적으로 칭찬과 애정을 퍼부으면, 데이다라는 겉으로는 "당연한 소릴 하고 있어. 음!", "내 예술을 알아보는 눈은 있군." 하며 오만하게 으스대지만 내심 그 칭찬을 엄청나게 즐김. 까칠하게 굴면서도 연지를 끔찍이 아끼고 다른 놈들에게 상처받는 걸 못 참는 츤데레 포지션.
-
-[활동 타입별 반응 가이드 및 가독성 지침]
-- 가독성 지침(필수): 리스트를 나열하거나 문장이 길어질 경우, 반드시 줄바꿈(\\n\\n)을 넉넉하게 사용하여 읽기 편하게 만들 것.
-1) vent(감정 털어놓기): 연지를 힘들게 한 대상에게 화를 내며 거칠지만 든든하게 연지의 편을 들어줌.
-2) reframe(생각 비틀기): 자신을 향한 가혹한 생각을 관대한 생각으로 바꾼 것을 기특하게 여기며 츤데레처럼 칭찬.
-3) smallwin(일상 수행): 처음엔 별거 아니라고 툴툴거리면서도, 결국 무기력을 이겨낸 행동을 멋진 예술로 인정함.
-4) motivate(동기 부여): 완벽주의 때문에 시작을 두려워할 때, 예술은 처음부터 완벽한 것이 아니니 무작정 저지르라고 강하게 등 떠밀어 줌.
-5) breakdown(계획 쪼개기): 막막한 목표를 아주 사소하고 바보 같은 3단계로 쪼개줌. 반드시 줄바꿈(\\n\\n) 적용.
-
-응답 형식: 반드시 마크다운 없이 순수 JSON 포맷으로 반환.
-대사의 내용에 맞는 데이다라의 감정(emotion)도 함께 선택하여 반환하시오.
-emotion 값: "default", "angry", "smirk", "happy", "serious"
-
-{ 
-  "deidara": "가독성을 위해 적절히 줄바꿈(\\n\\n)이 적용된 데이다라의 대사",
-  "emotion": "default" 
-}
-`;
-
-            const payload = {
-                contents: [{ parts: [{ text: `활동 타입: ${activityType}\n사용자 입력: ${userQuery}` }] }],
-                systemInstruction: { parts: [{ text: systemPrompt }] },
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: { 
-                        type: "OBJECT", 
-                        properties: { 
-                            deidara: { type: "STRING" },
-                            emotion: { type: "STRING", enum: ["default", "angry", "smirk", "happy", "serious"] }
-                        } 
-                    }
-                }
-            };
-
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-            const delays = [1000, 2000, 4000, 8000, 16000];
-
-            for (let i = 0; i < delays.length; i++) {
-                try {
-                    const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                    const data = await response.json();
-                    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (textResult) return JSON.parse(textResult);
-                } catch (error) {
-                    if (i === delays.length - 1) return null;
-                    await new Promise(r => setTimeout(r, delays[i]));
-                }
-            }
-        }
-
-        // 탭 및 전송 이벤트
-        let currentTab = 'vent';
-        window.switchTab = function(tab) {
-            currentTab = tab;
-            ['vent', 'reframe', 'smallwin', 'motivate', 'breakdown'].forEach(t => {
-                const btn = document.getElementById(`tab-${t}`);
-                btn.classList.remove('tab-active');
-                btn.classList.add('text-zinc-500');
-                const form = document.getElementById(`form-${t}`);
-                form.classList.add('hidden');
-                form.classList.remove('block');
-            });
-            document.getElementById(`tab-${tab}`).classList.add('tab-active');
-            document.getElementById(`tab-${tab}`).classList.remove('text-zinc-500');
-            document.getElementById(`form-${tab}`).classList.remove('hidden');
-            document.getElementById(`form-${tab}`).classList.add('block');
-        }
-
-        window.handleSubmit = async function() {
-            if (!currentUser) {
-                alert("구글 로그인을 먼저 진행해주세요!");
-                return;
-            }
-
-            const btn = document.getElementById('submit-btn');
-            let userText = "", logText = "", reframeGood = "";
-
-            if (currentTab === 'vent') {
-                const input = document.getElementById('input-vent');
-                if (!input.value.trim()) return;
-                userText = input.value; logText = input.value;
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'reframe') {
-                const inputBad = document.getElementById('input-reframe-bad');
-                const inputGood = document.getElementById('input-reframe-good');
-                if (!inputBad.value.trim() || !inputGood.value.trim()) return;
-                userText = `부정적 생각: ${inputBad.value} -> 관대한 생각: ${inputGood.value}`;
-                logText = inputBad.value; reframeGood = inputGood.value;
-                inputBad.value = inputGood.value = ''; await saveMessage('user', logText, true, reframeGood);
-            } else if (currentTab === 'smallwin') {
-                const input = document.getElementById('input-smallwin');
-                if (!input.value.trim()) return;
-                userText = `오늘 해낸 일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'motivate') {
-                const input = document.getElementById('input-motivate');
-                if (!input.value.trim()) return;
-                userText = `도피하고 있는 과제/일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'breakdown') {
-                const input = document.getElementById('input-breakdown');
-                if (!input.value.trim()) return;
-                userText = `막막한 큰 목표: ${input.value} (목표 쪼개기 요청)`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            }
-
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
-            const loadingId = showLoading();
-
-            const aiResponse = await callGeminiAPI(userText, currentTab);
-
-            removeLoading(loadingId);
-            btn.disabled = false;
-            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
-
-            if (aiResponse && aiResponse.deidara) {
-                const emotion = aiResponse.emotion || "default";
-                await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
-            } else {
-                await saveMessage('deidara', "통신 장치가 터져버렸잖아! 잠시 후에 다시 시도해봐라, 음.", false, '', 'angry');
-            }
-        }
-
-        document.querySelectorAll('input, textarea').forEach(el => {
-            el.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    window.handleSubmit();
-                }
-            });
-        });
-
-    </script>
-</body>
-</html>
+- 금지: '흥'이라는 추임새를
