@@ -62,7 +62,7 @@
             <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-20 mix-blend-overlay"></div>
             <div class="absolute bottom-0 w-full h-2/3 bg-gradient-to-t from-black to-transparent z-10 pointer-events-none"></div>
             
-            <img id="ui-standing" src="" alt="데이다라 스탠딩" 
+            <img id="ui-standing" src="" alt="데이다 스탠딩" 
                  onerror="this.src='https://placehold.co/400x500/000000/ef4444/png?text=Standing\\nImage\\nNot+Found'" 
                  class="h-[110%] object-contain object-bottom relative z-0 mt-auto drop-shadow-[0_10px_25px_rgba(250,204,21,0.15)] transition-all duration-500 opacity-95 hover:opacity-100">
             
@@ -165,31 +165,16 @@
 
         // =========================================================================
         // [🛑 필수 설정 1: Firebase 설정 코드 넣기 🛑]
-        // Firebase 콘솔에서 발급받은 본인의 config 코드를 아래에 덮어쓰세요!
+        // 연지 님이 올려주신 Firebase 코드를 올바른 형식으로 세팅했습니다!
         // =========================================================================
-        <script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-analytics.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-  const firebaseConfig = {
-    apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
-    authDomain: "deidara-70f6e.firebaseapp.com",
-    projectId: "deidara-70f6e",
-    storageBucket: "deidara-70f6e.firebasestorage.app",
-    messagingSenderId: "183278137031",
-    appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
-    measurementId: "G-48XSYZ5F6L"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-</script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
+            authDomain: "deidara-70f6e.firebaseapp.com",
+            projectId: "deidara-70f6e",
+            storageBucket: "deidara-70f6e.firebasestorage.app",
+            messagingSenderId: "183278137031",
+            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2"
+        };
 
         // =========================================================================
         // [🛑 필수 설정 2: Gemini API 키 🛑]
