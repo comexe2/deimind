@@ -172,7 +172,7 @@
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // [🚀 PWA 서비스 워커 등록 (앱 설치를 위해 필수!) 🚀]
+        // [🚀 PWA 서비스 워커 등록 🚀]
         // =========================================================================
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -228,6 +228,7 @@
         const renderedMsgIds = new Set();
         const chatContainer = document.getElementById('chat-container');
 
+        // 오프라인 건너뛰기 버튼
         document.getElementById('btn-skip-login').addEventListener('click', () => {
             const overlay = document.getElementById('login-overlay');
             overlay.style.opacity = '0';
@@ -236,6 +237,7 @@
             currentUser = null;
         });
 
+        // 인앱 브라우저 체크
         const isAppBrowser = navigator.userAgent.match(/kakaotalk|instagram|naver|line/i);
 
         if (isAppBrowser) {
@@ -258,40 +260,34 @@
             lucide.createIcons();
         } else {
             const btnLogin = document.getElementById('btn-google-login');
-            btnLogin.addEventListener('click', async () => {
-                const originalHtml = btnLogin.innerHTML;
+            btnLogin.addEventListener('click', () => {
                 
                 if (window.location.protocol === 'file:') {
                     alert("[로컬 파일 실행 중]\n\n컴퓨터에 다운로드된 파일(file://)에서는 구글 로그인이 차단됩니다.\nGitHub Pages 등에 업로드한 후 접속해주세요!");
                     return;
                 }
 
-                btnLogin.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> 로그인 처리 중...';
-                lucide.createIcons();
-                btnLogin.classList.add('opacity-50', 'pointer-events-none');
-
-                try {
-                    const result = await signInWithPopup(auth, provider);
-                    
-                    currentUser = result.user;
-                    document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (연동됨)';
-                    const overlay = document.getElementById('login-overlay');
-                    overlay.style.opacity = '0';
-                    setTimeout(() => overlay.style.display = 'none', 500);
-                    loadChatHistory();
-
-                } catch (error) {
-                    console.error("Login Error:", error);
-                    btnLogin.innerHTML = originalHtml;
-                    btnLogin.classList.remove('opacity-50', 'pointer-events-none');
-                    lucide.createIcons();
-                    
-                    if (error.code === 'auth/unauthorized-domain') {
-                        alert(`[도메인 승인 오류!]\n\n파이어베이스에 다음 주소가 등록되지 않았습니다:\n[ ${window.location.hostname} ]\n\nFirebase 콘솔 -> Authentication -> Settings -> 승인된 도메인에 위 주소를 정확히 추가해주세요.`);
-                    } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                        alert("로그인 요청에 실패했습니다: " + error.message);
-                    }
-                }
+                // 즉각적인 팝업 호출
+                signInWithPopup(auth, provider)
+                    .then((result) => {
+                        currentUser = result.user;
+                        document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (연동됨)';
+                        const overlay = document.getElementById('login-overlay');
+                        overlay.style.opacity = '0';
+                        setTimeout(() => overlay.style.display = 'none', 500);
+                        loadChatHistory();
+                    })
+                    .catch((error) => {
+                        console.error("Login Error:", error);
+                        
+                        if (error.code === 'auth/popup-blocked') {
+                            alert("🚨 팝업이 차단되었습니다!\n\nPC: 브라우저 주소창 우측 끝에 있는 '팝업 차단 해제' 아이콘을 눌러주세요.\n모바일: 브라우저 설정에서 '팝업 허용'을 켜주세요.");
+                        } else if (error.code === 'auth/unauthorized-domain') {
+                            alert(`[도메인 승인 오류!]\n\n파이어베이스에 다음 주소가 등록되지 않았습니다:\n[ ${window.location.hostname} ]\n\nFirebase 콘솔 -> Authentication -> Settings -> 승인된 도메인에 위 주소를 정확히 추가해주세요.`);
+                        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                            alert("로그인에 실패했습니다: " + error.message);
+                        }
+                    });
             });
         }
 
@@ -492,31 +488,36 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                 }
             };
 
-            // AI 모델을 Gemini 2.5 Pro로 변경했습니다.
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${apiKey}`;
+            // 퍼블릭 API 키에서 가장 안정적으로 작동하는 1.5-pro 모델로 변경
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
             const delays = [1000, 2000, 4000, 8000, 16000];
+            let lastError = "알 수 없는 오류";
 
             for (let i = 0; i < delays.length; i++) {
                 try {
                     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     if (!response.ok) {
                         const err = await response.json();
                         console.error("Gemini API 에러 상세:", err);
-                        throw new Error(`HTTP error! status: ${response.status}`);
+                        throw new Error(err.error?.message || `HTTP error! status: ${response.status}`);
                     }
                     
                     const data = await response.json();
                     let textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
                     
                     if (textResult) {
-                        // 2. 가끔 AI가 마크다운 코드 블록(```json 등)을 붙여서 보내는 경우 파싱 에러가 나므로 이를 깔끔하게 제거합니다.
-                        textResult = textResult.replace(/^```json\n?/i, '').replace(/\n?```$/i, '').trim();
-                        return JSON.parse(textResult);
+                        // AI가 마크다운 텍스트 찌꺼기를 보내더라도 JSON만 완벽하게 걸러내는 코드
+                        const jsonMatch = textResult.match(/\{[\s\S]*\}/);
+                        if (jsonMatch) {
+                            return JSON.parse(jsonMatch[0]);
+                        } else {
+                            throw new Error("AI가 JSON 형식이 아닌 이상한 답변을 보냈습니다.");
+                        }
                     }
                 } catch (error) {
                     console.error("통신 실패 (재시도 중):", error);
-                    if (i === delays.length - 1) return null;
+                    lastError = error.message;
+                    if (i === delays.length - 1) return { error: lastError };
                     await new Promise(r => setTimeout(r, delays[i]));
                 }
             }
@@ -542,7 +543,6 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
 
         window.handleSubmit = async function() {
             if (!currentUser) {
-                // 오프라인 모드일 때는 패스
                 if (document.getElementById('sync-status').innerText.includes('오프라인')) {
                     // 통과
                 } else {
@@ -596,6 +596,9 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
             if (aiResponse && aiResponse.deidara) {
                 const emotion = aiResponse.emotion || "default";
                 await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
+            } else if (aiResponse && aiResponse.error) {
+                // 어떤 에러 때문에 통신이 터졌는지 화면에 직접 뿌려줍니다!
+                await saveMessage('deidara', `[시스템 에러] 통신 장치가 터졌다, 음!\n에러 원인: ${aiResponse.error}`, false, '', 'angry');
             } else {
                 await saveMessage('deidara', "통신 장치가 터져버렸잖아! 잠시 후에 다시 시도해봐라, 음.", false, '', 'angry');
             }
