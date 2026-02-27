@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- 화면 확대 방지 및 모바일 네이티브 앱 비율 고정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>마음 아지트 - 데이다라</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -37,9 +38,10 @@
         .akatsuki-gradient { background: linear-gradient(135deg, #000000 0%, #300707 100%); }
     </style>
 </head>
-<body class="flex items-center justify-center min-h-screen p-4 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-black">
+<!-- 모바일에서는 여백 제거, PC(sm 이상)에서는 패딩 유지 -->
+<body class="flex items-center justify-center min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-black sm:p-4">
 
-    <!-- 구글 로그인 오버레이 (동기화를 위해 필수) -->
+    <!-- 구글 로그인 오버레이 -->
     <div id="login-overlay" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500">
         <img id="login-profile" src="" class="w-24 h-24 rounded-full border-4 border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.5)] mb-6 object-cover" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'">
         <h2 class="text-2xl font-extrabold text-yellow-400 mb-2">마음 아지트 연결 중...</h2>
@@ -52,8 +54,8 @@
         </button>
     </div>
 
-    <!-- App Container -->
-    <div class="akatsuki-gradient w-full max-w-md rounded-[2rem] shadow-[0_0_50px_rgba(220,38,38,0.25)] overflow-hidden flex flex-col h-[90vh] max-h-[850px] border border-red-900/40 relative">
+    <!-- App Container : 모바일에서는 풀스크린(100dvh, 라운드 없음), PC에서는 팝업 형태(라운드 있음) -->
+    <div class="akatsuki-gradient w-full max-w-md sm:rounded-[2rem] shadow-none sm:shadow-[0_0_50px_rgba(220,38,38,0.25)] overflow-hidden flex flex-col h-[100dvh] sm:h-[90vh] sm:max-h-[850px] border-0 sm:border border-red-900/40 relative">
         
         <!-- Header -->
         <div class="relative h-56 sm:h-64 shrink-0 overflow-hidden flex justify-center items-end bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-red-900/40 via-black to-black border-b border-red-900/60">
@@ -92,7 +94,7 @@
         </nav>
 
         <!-- Main Chat Area -->
-        <main class="flex-1 overflow-y-auto p-5 chat-scroll bg-zinc-950 flex flex-col gap-6 relative z-10" id="chat-container">
+        <main class="flex-1 overflow-y-auto p-4 sm:p-5 chat-scroll bg-zinc-950 flex flex-col gap-6 relative z-10 pb-6" id="chat-container">
             <div id="welcome-message-container" class="flex justify-center my-3 shrink-0">
                 <div id="welcome-message" class="text-xs text-yellow-200/90 bg-red-950/40 px-6 py-2.5 rounded-full border border-red-500/20 font-medium tracking-wide shadow-sm text-center">
                     <!-- JS로 무작위 메시지 삽입 -->
@@ -100,55 +102,55 @@
             </div>
         </main>
 
-        <!-- Input Area -->
-        <div class="p-5 bg-[#0a0a0a] border-t border-zinc-900 shrink-0 relative z-10 shadow-[0_-15px_30px_-10px_rgba(0,0,0,0.9)] rounded-b-[2rem]">
+        <!-- Input Area (모바일 대응 패딩 조절) -->
+        <div class="p-4 sm:p-5 bg-[#0a0a0a] border-t border-zinc-900 shrink-0 relative z-10 shadow-[0_-15px_30px_-10px_rgba(0,0,0,0.9)] sm:rounded-b-[2rem]">
             
             <div id="form-vent" class="block fade-in">
-                <label class="block text-xs font-medium text-zinc-400 mb-2 ml-1">지금 느끼는 부정적인 감정이나 고민을 적어보세요.</label>
-                <textarea id="input-vent" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-4 text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 주변 사람들은 다 취업하는데 나만 뒤처지는 것 같아 불안해..."></textarea>
+                <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1">지금 느끼는 부정적인 감정이나 고민을 적어보세요.</label>
+                <textarea id="input-vent" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 주변 사람들은 다 취업하는데 나만 뒤처지는 것 같아 불안해..."></textarea>
             </div>
 
-            <div id="form-reframe" class="hidden fade-in space-y-4">
+            <div id="form-reframe" class="hidden fade-in space-y-3 sm:space-y-4">
                 <div>
-                    <label class="block text-xs font-medium text-zinc-400 mb-2 ml-1">나를 깎아내리는 자동적 사고 (부정적 생각)</label>
-                    <input type="text" id="input-reframe-bad" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-xl p-4 text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 난 늘 계획을 미루기만 하는 한심한 사람이야.">
+                    <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-1.5 sm:mb-2 ml-1">나를 깎아내리는 자동적 사고 (부정적 생각)</label>
+                    <input type="text" id="input-reframe-bad" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 난 늘 계획을 미루기만 하는 한심한 사람이야.">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-yellow-400 mb-2 ml-1 flex items-center gap-1.5">
+                    <label class="block text-[11px] sm:text-xs font-medium text-yellow-400 mb-1.5 sm:mb-2 ml-1 flex items-center gap-1.5">
                         스스로를 용서하는 관대한 생각 (대안적 사고)
                     </label>
-                    <input type="text" id="input-reframe-good" class="w-full bg-yellow-950/10 text-yellow-50 border border-yellow-900/40 rounded-xl p-4 text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all placeholder:text-yellow-700/50 shadow-inner" placeholder="예: 완벽하지 않아도 괜찮아. 지금부터 다시 시작하면 돼.">
+                    <input type="text" id="input-reframe-good" class="w-full bg-yellow-950/10 text-yellow-50 border border-yellow-900/40 rounded-xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all placeholder:text-yellow-700/50 shadow-inner" placeholder="예: 완벽하지 않아도 괜찮아. 지금부터 다시 시작하면 돼.">
                 </div>
             </div>
 
             <div id="form-smallwin" class="hidden fade-in">
-                <label class="block text-xs font-medium text-zinc-400 mb-2 ml-1">오늘 하루, 무기력을 뚫고 해낸 일상이나 과제를 적어보세요.</label>
-                <input type="text" id="input-smallwin" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-xl p-4 text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 약 챙겨 먹기, 과제 1페이지 쓰기, 방청소 등">
+                <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1">오늘 하루, 무기력을 뚫고 해낸 일상이나 과제를 적어보세요.</label>
+                <input type="text" id="input-smallwin" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 약 챙겨 먹기, 과제 1페이지 쓰기, 방청소 등">
             </div>
 
             <div id="form-motivate" class="hidden fade-in">
-                <label class="block text-xs font-medium text-zinc-400 mb-2 ml-1">완벽주의나 무기력 때문에 시작하기 두려운 일이 있나요?</label>
-                <textarea id="input-motivate" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-4 text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 내일까지 기획서 초안을 써야 하는데, 잘 못 쓸까 봐 도피하고 있어..."></textarea>
+                <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1">완벽주의나 무기력 때문에 시작하기 두려운 일이 있나요?</label>
+                <textarea id="input-motivate" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 내일까지 기획서 초안을 써야 하는데, 잘 못 쓸까 봐 도피하고 있어..."></textarea>
             </div>
 
             <div id="form-breakdown" class="hidden fade-in">
-                <label class="block text-xs font-medium text-zinc-400 mb-2 ml-1 flex items-center gap-1.5">
+                <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1 flex items-center gap-1.5">
                     막막한 큰 목표를 데이다라가 아주 작게 쪼개드립니다
                 </label>
-                <textarea id="input-breakdown" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-4 text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 졸업 논문 작성하기, 포트폴리오 기획하기"></textarea>
+                <textarea id="input-breakdown" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 졸업 논문 작성하기, 포트폴리오 기획하기"></textarea>
             </div>
 
-            <div class="flex items-center justify-between mt-5">
-                <div class="text-[11px] text-zinc-500 flex items-center gap-2 ml-1">
+            <div class="flex items-center justify-between mt-4 sm:mt-5 pb-2 sm:pb-0">
+                <div class="text-[10px] sm:text-[11px] text-zinc-500 flex items-center gap-2 ml-1">
                     <span class="relative flex h-2 w-2">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
                     </span>
                     <span id="sync-status">로그인 대기 중...</span>
                 </div>
-                <button id="submit-btn" onclick="window.handleSubmit()" class="bg-gradient-to-r from-red-600 to-yellow-500 hover:from-red-500 hover:to-yellow-400 text-black px-7 py-3 rounded-full text-[15px] font-extrabold transition-all shadow-[0_0_20px_rgba(239,68,68,0.4)] flex items-center gap-2.5 active:scale-95 border-2 border-transparent shrink-0">
+                <button id="submit-btn" onclick="window.handleSubmit()" class="bg-gradient-to-r from-red-600 to-yellow-500 hover:from-red-500 hover:to-yellow-400 text-black px-6 sm:px-7 py-2.5 sm:py-3 rounded-full text-[14px] sm:text-[15px] font-extrabold transition-all shadow-[0_0_20px_rgba(239,68,68,0.4)] flex items-center gap-2.5 active:scale-95 border-2 border-transparent shrink-0">
                     <span>전송하기</span>
-                    <i data-lucide="bomb" class="w-4.5 h-4.5"></i>
+                    <i data-lucide="bomb" class="w-4 h-4 sm:w-4.5 sm:h-4.5"></i>
                 </button>
             </div>
         </div>
@@ -156,9 +158,9 @@
 
     <!-- Firebase 및 Gemini API 연동 -->
     <script type="module">
-        // Firebase 최신 버전(11.6.1) 라이브러리 불러오기
+        // 모바일 호환성을 위해 signInWithRedirect 등 필수 모듈 추가
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithRedirect, getRedirectResult, GoogleAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
@@ -175,7 +177,7 @@
   // Your web app's Firebase configuration
   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
   const firebaseConfig = {
-    apiKey: "AIzaSyCh0lE4QEqGN7tkwt3aHiM-zUiq757NPs0",
+    apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
     authDomain: "deidara-70f6e.firebaseapp.com",
     projectId: "deidara-70f6e",
     storageBucket: "deidara-70f6e.firebasestorage.app",
@@ -192,11 +194,10 @@
         // =========================================================================
         // [🛑 필수 설정 2: Gemini API 키 🛑]
         // =========================================================================
-        const apiKey = "여기에_GEMINI_API_KEY_입력"; 
+        const apiKey = "AIzaSyCh0lE4QEqGN7tkwt3aHiM-zUiq757NPs0"; 
 
         // =========================================================================
         // [🎨 웹 이미지 URL 설정 🎨]
-        // GitHub나 모바일에서 보려면 로컬 파일(C:/) 대신 https:// 주소를 써야 합니다.
         // =========================================================================
         const DEIDARA_PROFILE_URL = "https://i.imgur.com/여기에프사주소입력.png"; 
         
@@ -235,11 +236,17 @@
         const renderedMsgIds = new Set();
         const chatContainer = document.getElementById('chat-container');
 
-        // 구글 로그인 버튼 이벤트
+        // 리다이렉트 로그인 결과 처리 (모바일 호환)
+        getRedirectResult(auth).catch((error) => {
+            console.error("Redirect Login Error:", error);
+            alert("로그인 중 오류가 발생했습니다. 권한 설정(도메인)을 확인해주세요.");
+        });
+
+        // 구글 로그인 버튼 이벤트 (모바일 차단 방지를 위해 Redirect 사용)
         document.getElementById('btn-google-login').addEventListener('click', () => {
-            signInWithPopup(auth, provider).catch(error => {
+            signInWithRedirect(auth, provider).catch(error => {
                 console.error("Login Error:", error);
-                alert("로그인에 실패했습니다. 다시 시도해주세요!");
+                alert("로그인 요청에 실패했습니다.");
             });
         });
 
@@ -248,15 +255,14 @@
             const overlay = document.getElementById('login-overlay');
             if (user) {
                 currentUser = user;
-                document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (PC/모바일 연동됨)';
+                document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (연동됨)';
                 overlay.style.opacity = '0';
-                setTimeout(() => overlay.style.display = 'none', 500); // 0.5초 후 완전히 숨김
+                setTimeout(() => overlay.style.display = 'none', 500);
                 loadChatHistory();
             } else {
                 currentUser = null;
                 document.getElementById('sync-status').innerText = '로그인 대기 중...';
                 overlay.style.display = 'flex';
-                // 약간의 딜레이 후 투명도 복구
                 setTimeout(() => overlay.style.opacity = '1', 10);
             }
         });
@@ -272,16 +278,16 @@
             
             if (isReframe) {
                 msgDiv.innerHTML = `
-                    <div class="bg-zinc-800/80 border border-zinc-700/50 text-zinc-400 px-5 py-3 rounded-2xl rounded-tr-sm text-[14px] max-w-[85%] line-through opacity-80">
+                    <div class="bg-zinc-800/80 border border-zinc-700/50 text-zinc-400 px-4 sm:px-5 py-3 rounded-2xl rounded-tr-sm text-[13px] sm:text-[14px] max-w-[85%] line-through opacity-80">
                         ${text}
                     </div>
-                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black font-bold px-5 py-3.5 rounded-2xl rounded-br-sm text-[15px] max-w-[85%] shadow-[0_4px_12px_rgba(250,204,21,0.2)] leading-relaxed mt-1">
+                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black font-bold px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-br-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-[0_4px_12px_rgba(250,204,21,0.2)] leading-relaxed mt-1">
                         ${reframeGood}
                     </div>
                 `;
             } else {
                 msgDiv.innerHTML = `
-                    <div class="bg-red-900/40 border border-red-800/50 text-red-50 px-5 py-3.5 rounded-2xl rounded-tr-sm text-[15px] max-w-[85%] shadow-sm leading-relaxed tracking-wide">
+                    <div class="bg-red-900/40 border border-red-800/50 text-red-50 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-tr-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-sm leading-relaxed tracking-wide">
                         ${text}
                     </div>
                 `;
@@ -292,14 +298,14 @@
 
         function renderDeidaraMessage(text) {
             const msgDiv = document.createElement('div');
-            msgDiv.className = 'flex items-start gap-3.5 fade-in mt-4 mb-2 w-full';
+            msgDiv.className = 'flex items-start gap-3 fade-in mt-4 mb-2 w-full';
             const formattedText = text.replace(/\n/g, '<br>');
 
             msgDiv.innerHTML = `
-                <img src="${DEIDARA_PROFILE_URL}" alt="프사" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-11 h-11 rounded-full object-cover shrink-0 border border-red-500 shadow-md mt-1">
-                <div class="flex flex-col gap-1.5 max-w-[82%]">
-                    <span class="text-xs font-bold text-red-500 ml-1 tracking-wider opacity-90">데이다라</span>
-                    <div class="bg-zinc-800/95 border-l-[3px] border-yellow-500 shadow-md text-zinc-100 px-5 py-4 rounded-2xl rounded-tl-sm text-[15px] leading-relaxed tracking-wide font-medium break-words">
+                <img src="${DEIDARA_PROFILE_URL}" alt="프사" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-10 sm:w-11 h-10 sm:h-11 rounded-full object-cover shrink-0 border border-red-500 shadow-md mt-1">
+                <div class="flex flex-col gap-1 sm:gap-1.5 max-w-[85%] sm:max-w-[82%]">
+                    <span class="text-[11px] sm:text-xs font-bold text-red-500 ml-1 tracking-wider opacity-90">데이다라</span>
+                    <div class="bg-zinc-800/95 border-l-[3px] border-yellow-500 shadow-md text-zinc-100 px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl rounded-tl-sm text-[14px] sm:text-[15px] leading-relaxed tracking-wide font-medium break-words">
                         ${formattedText}
                     </div>
                 </div>
@@ -313,10 +319,10 @@
             const loadingId = 'loading-' + Date.now();
             const msgDiv = document.createElement('div');
             msgDiv.id = loadingId;
-            msgDiv.className = 'flex items-start gap-3.5 fade-in mt-4 mb-2';
+            msgDiv.className = 'flex items-start gap-3 fade-in mt-4 mb-2';
             msgDiv.innerHTML = `
-                <img src="${DEIDARA_PROFILE_URL}" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-11 h-11 rounded-full object-cover shrink-0 border border-red-500/30 opacity-50 grayscale mt-1">
-                <div class="bg-zinc-800/95 border border-zinc-700/50 shadow-sm px-5 py-4 rounded-2xl rounded-tl-sm flex gap-2 items-center h-[52px]">
+                <img src="${DEIDARA_PROFILE_URL}" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-10 sm:w-11 h-10 sm:h-11 rounded-full object-cover shrink-0 border border-red-500/30 opacity-50 grayscale mt-1">
+                <div class="bg-zinc-800/95 border border-zinc-700/50 shadow-sm px-4 sm:px-5 py-3.5 sm:py-4 rounded-2xl rounded-tl-sm flex gap-2 items-center h-[48px] sm:h-[52px]">
                     <div class="w-2 h-2 bg-yellow-500/80 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
                     <div class="w-2 h-2 bg-yellow-500/80 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
                     <div class="w-2 h-2 bg-yellow-500/80 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
