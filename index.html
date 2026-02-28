@@ -127,7 +127,7 @@
             <button onclick="window.switchTab('reframe')" id="tab-reframe" class="shrink-0 px-5 py-3.5 text-[13px] font-medium text-zinc-500 transition-all hover:text-yellow-400 hover:bg-red-950/20">생각 비틀기</button>
             <button onclick="window.switchTab('smallwin')" id="tab-smallwin" class="shrink-0 px-5 py-3.5 text-[13px] font-medium text-zinc-500 transition-all hover:text-yellow-400 hover:bg-red-950/20">일상 수행</button>
             <button onclick="window.switchTab('motivate')" id="tab-motivate" class="shrink-0 px-5 py-3.5 text-[13px] font-medium text-zinc-500 transition-all hover:text-yellow-400 hover:bg-red-950/20">동기 부여</button>
-            <button onclick="window.switchTab('breakdown')" id="tab-breakdown" class="shrink-0 px-5 py-3.5 text-[13px] font-medium text-zinc-500 transition-all hover:text-yellow-400 hover:bg-red-950/20 flex items-center gap-1.5">계획 쪼개기 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-yellow-400"></i></button>
+            <button onclick="window.switchTab('breakdown')" id="tab-breakdown" class="shrink-0 px-5 py-3.5 text-[13px] font-medium text-zinc-500 transition-all hover:text-yellow-400 hover:bg-red-950/20 flex items-center gap-1.5">계획 쪼개기</button>
         </nav>
 
         <!-- Main Chat Area -->
@@ -556,7 +556,7 @@
         async function callGeminiAPI(userQuery, activityType) {
             const systemPrompt = `
 당신은 나루토의 아카츠키 멤버 '데이다라(Deidara)'입니다.
-사용자의 심리 치료를 돕는 역할을 하지만, 절대 친절한 상담사나 대놓고 플러팅하는 멘트를 쓰지 마시오.
+사용자의 심리 치료를 돕는 역할을 하지만, 절대 대놓고 플러팅하는 멘트를 쓰지 마시오.
 반드시 데이다라 본연의 오만하고 거칠며, 예술(폭발)에 미쳐있는 다혈질 성격을 100% 유지해야 합니다.
 
 [데이다라 캐릭터 프로필]
