@@ -29,7 +29,7 @@
 </head>
 <body class="flex items-center justify-center min-h-screen bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] bg-black sm:p-4">
 
-    <!-- 구글 로그인 오버레이 (API 키 입력란 제거, 로그인만 담당) -->
+    <!-- 구글 로그인 오버레이 -->
     <div id="login-overlay" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500 overflow-y-auto hidden">
         <img id="login-profile" src="" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.5)] mb-6 object-cover" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'">
         <h2 class="text-2xl font-extrabold text-yellow-400 mb-2">마음 아지트 연결 중...</h2>
@@ -62,22 +62,22 @@
             <p class="text-xs text-zinc-400 mb-6">통신 장치 설정이다. 음!</p>
             
             <div class="space-y-5">
-                <!-- API 키 설정 -->
+                <!-- API 키 및 모델 설정 -->
                 <div class="bg-black/50 p-4 rounded-xl border border-zinc-800">
                     <label class="block text-left text-[11px] text-zinc-400 mb-2 font-medium">Gemini API 키 (Google AI Studio 발급)</label>
                     <input type="password" id="settings-api-key" class="w-full bg-zinc-950 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 text-[14px] focus:outline-none focus:border-red-500 transition-all placeholder:text-zinc-600" placeholder="AIzaSy...">
                     
-                    <!-- AI 모델 선택 드롭다운 추가 -->
-                    <label class="block text-left text-[11px] text-zinc-400 mt-4 mb-2 font-medium">AI 모델 선택</label>
+                    <!-- AI 모델 선택 드롭다운 -->
+                    <label class="block text-left text-[11px] text-zinc-400 mt-4 mb-2 font-medium">AI 두뇌 모델 선택</label>
                     <select id="settings-ai-model" class="w-full bg-zinc-950 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 text-[14px] focus:outline-none focus:border-red-500 transition-all">
-                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (안정적, 권장)</option>
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (기본/안정적)</option>
                         <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                         <option value="gemini-2.5-pro">Gemini 2.5 Pro (고성능)</option>
-                        <option value="gemini-3.0-flash-preview">Gemini 3 Flash Preview</option>
+                        <option value="gemini-3.0-flash-preview">Gemini 3 Flash Preview (최신)</option>
                     </select>
 
                     <div class="flex justify-between items-center mt-4">
-                        <button onclick="window.open('https://aistudio.google.com/app/apikey', '_blank')" class="text-[11px] text-blue-400 hover:text-blue-300 underline underline-offset-2">API 키 재발급 받으러 가기</button>
+                        <button onclick="window.open('https://aistudio.google.com/app/apikey', '_blank')" class="text-[11px] text-blue-400 hover:text-blue-300 underline underline-offset-2">API 키 발급받기</button>
                         <button id="btn-save-settings-key" class="bg-zinc-700 hover:bg-zinc-600 text-white text-[12px] px-4 py-1.5 rounded-lg transition-colors font-semibold">설정 저장</button>
                     </div>
                     <p id="settings-key-status" class="text-left text-[11px] text-red-400 mt-2 hidden">올바른 키를 입력해라, 음!</p>
@@ -213,85 +213,19 @@
         }
 
         // =========================================================================
-        // [🛑 필수 설정 1: 연지님의 Firebase 설정 🛑]
-        // =========================================================================
-        const firebaseConfig = {
-            apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
-            authDomain: "deidara-70f6e.firebaseapp.com",
-            projectId: "deidara-70f6e",
-            storageBucket: "deidara-70f6e.firebasestorage.app",
-            messagingSenderId: "183278137031",
-            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
-            measurementId: "G-48XSYZ5F6L"
-        };
-
-        // =========================================================================
-        // [🛑 필수 설정 2: Gemini API 키 (보안 관리) 🛑]
-        // =========================================================================
-        let currentApiKey = localStorage.getItem('myGeminiApiKey') || "";
-        let currentModel = localStorage.getItem('myGeminiModel') || "gemini-1.5-flash";
-
-        const inputKey = document.getElementById('settings-api-key');
-        const selectModel = document.getElementById('settings-ai-model');
-        const btnSaveKey = document.getElementById('btn-save-settings-key');
-        const keyStatusMsg = document.getElementById('settings-key-status');
-        
-        // 환경 설정 모달 열고 닫기 로직
-        window.toggleSettings = function() {
-            const modal = document.getElementById('settings-modal');
-            if (modal.classList.contains('hidden')) {
-                // 열기
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                
-                // 현재 키 및 모델 상태 보여주기
-                if (currentApiKey) {
-                    inputKey.value = currentApiKey;
-                    btnSaveKey.innerText = "저장됨";
-                    btnSaveKey.classList.add('bg-green-600');
-                    btnSaveKey.classList.remove('bg-zinc-700');
-                }
-                selectModel.value = currentModel;
-                lucide.createIcons();
-            } else {
-                // 닫기
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        };
-
-        // 키 저장 버튼 이벤트
-        btnSaveKey.addEventListener('click', () => {
-            const key = inputKey.value.trim();
-            const model = selectModel.value;
-            if(key.length > 30) {
-                localStorage.setItem('myGeminiApiKey', key);
-                localStorage.setItem('myGeminiModel', model);
-                currentApiKey = key;
-                currentModel = model;
-                btnSaveKey.innerText = "저장 완료!";
-                btnSaveKey.classList.remove('bg-zinc-700', 'hover:bg-zinc-600');
-                btnSaveKey.classList.add('bg-green-600');
-                keyStatusMsg.classList.add('hidden');
-                
-                // 저장 후 자동으로 창 닫기
-                setTimeout(() => window.toggleSettings(), 800);
-            } else {
-                keyStatusMsg.innerText = "올바른 API 키를 입력해라, 음!";
-                keyStatusMsg.classList.remove('hidden');
-            }
-        });
-
-        // =========================================================================
-        // [🎨 웹 이미지 URL 설정 🎨]
+        // [🎨 웹 이미지 URL 설정 🎨] - 나중에 여기에 이미지 링크를 넣어주세요
         // =========================================================================
         const DEIDARA_PROFILE_URL = "https://i.imgur.com/여기에프사주소입력.png"; 
+        
+        // 연지님이 준비한 7가지 표정 매핑
         const DEIDARA_STANDING_IMAGES = {
-            "default": "https://i.imgur.com/기본표정입력.png", 
-            "angry": "https://i.imgur.com/화남표정입력.png",     
-            "smirk": "https://i.imgur.com/비웃음표정입력.png",     
-            "happy": "https://i.imgur.com/기분좋음표정입력.png",     
-            "serious": "https://i.imgur.com/진지함표정입력.png"  
+            "default": "https://i.imgur.com/무표정입력.png", 
+            "happy": "https://i.imgur.com/미소입력.png",     
+            "playful": "https://i.imgur.com/메롱입력.png",     
+            "angry": "https://i.imgur.com/화남입력.png",     
+            "sad": "https://i.imgur.com/눈물입력.png",
+            "shy": "https://i.imgur.com/부끄러움입력.png",
+            "surprised": "https://i.imgur.com/당황입력.png"
         };
         
         document.getElementById('ui-profile').src = DEIDARA_PROFILE_URL;
@@ -488,6 +422,7 @@
 
         function updateStandingImage(emotion) {
             const imgElement = document.getElementById('ui-standing');
+            // AI가 잘못된 감정을 보내면 무표정(default)으로 처리
             const targetSrc = DEIDARA_STANDING_IMAGES[emotion] || DEIDARA_STANDING_IMAGES["default"];
             if(imgElement.src.includes(targetSrc.replace('https://', ''))) return;
             imgElement.style.opacity = 0;
@@ -558,7 +493,14 @@
 
 응답 형식: 반드시 마크다운 없이 순수 JSON 포맷으로 반환.
 대사의 내용에 맞는 데이다라의 감정(emotion)도 함께 선택하여 반환하시오.
-emotion 값: "default", "angry", "smirk", "happy", "serious"
+emotion 값은 반드시 다음 7가지 중 하나여야 함: 
+- "default" (무표정, 평상시)
+- "happy" (미소, 칭찬받아 우쭐할 때, 기분 좋을 때)
+- "playful" (메롱, 장난칠 때, 얄밉게 굴 때)
+- "angry" (화남, 질투할 때, 폭발 예술을 모욕당했을 때)
+- "sad" (눈물, 연지가 아파서 속상할 때, 슬플 때)
+- "shy" (부끄러움, 츤데레처럼 위로할 때, 쑥스러울 때)
+- "surprised" (당황, 예상치 못한 상황이나 칭찬에 허둥지둥할 때)
 
 { 
   "deidara": "가독성을 위해 적절히 줄바꿈(\\n\\n)이 적용된 데이다라의 대사",
@@ -575,36 +517,24 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                         type: "OBJECT", 
                         properties: { 
                             deidara: { type: "STRING" },
-                            emotion: { type: "STRING", enum: ["default", "angry", "smirk", "happy", "serious"] }
+                            emotion: { type: "STRING", enum: ["default", "happy", "playful", "angry", "sad", "shy", "surprised"] }
                         } 
                     }
                 }
             };
 
-            // 선택한 AI 모델을 URL에 적용합니다.
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${currentApiKey}`;
             const delays = [1000, 2000, 4000, 8000, 16000];
 
             for (let i = 0; i < delays.length; i++) {
                 try {
                     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) {
-                        const errData = await response.json();
-                        throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
-                    }
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                     const data = await response.json();
-                    let textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (textResult) {
-                        // JSON 파싱 에러 방지를 위해 혹시 모를 마크다운 태그를 제거합니다.
-                        textResult = textResult.replace(/```json\n?|```/g, '').trim();
-                        return JSON.parse(textResult);
-                    }
+                    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (textResult) return JSON.parse(textResult);
                 } catch (error) {
-                    console.error("Gemini API 통신 에러:", error);
-                    if (i === delays.length - 1) {
-                        alert("API 통신 오류가 발생했습니다:\n" + error.message);
-                        return null;
-                    }
+                    if (i === delays.length - 1) return null;
                     await new Promise(r => setTimeout(r, delays[i]));
                 }
             }
@@ -693,7 +623,6 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                 const emotion = aiResponse.emotion || "default";
                 await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
             } else {
-                // 에러 발생 시 UI 알림 (자세한 이유는 이제 alert로 뜹니다)
                 await saveMessage('deidara', "통신 장치가 터져버렸잖아! API 키가 틀렸거나 문제가 생겼다, 음.", false, '', 'angry');
             }
         }
