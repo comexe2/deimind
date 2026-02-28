@@ -188,64 +188,81 @@
         </div>
     </div>
 
-    <!-- 전역 UI 스크립트 (통신 에러가 나도 화면 UI는 절대 멈추지 않도록 최상단으로 분리) -->
-    <script>
-        // 안전한 로컬 스토리지 접근
-        function getSafeLocal(key, def) { try { return localStorage.getItem(key) || def; } catch(e) { return def; } }
-        function setSafeLocal(key, val) { try { localStorage.setItem(key, val); } catch(e) { console.warn("저장 공간이 차단되었습니다."); } }
-        function updateIconsSafely() { try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch(e) {} }
+    <!-- 하나의 통합 모듈 스크립트로 분리 없는 안정적인 처리 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // 서비스 워커
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
+        }
+
+        // =========================================================================
+        // [🛑 필수 설정 1: 연지님의 Firebase 설정 🛑]
+        // =========================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
+            authDomain: "deidara-70f6e.firebaseapp.com",
+            projectId: "deidara-70f6e",
+            storageBucket: "deidara-70f6e.firebasestorage.app",
+            messagingSenderId: "183278137031",
+            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
+            measurementId: "G-48XSYZ5F6L"
+        };
+
+        // 안전한 로컬 저장소 접근
+        function getSafeLocal(key, def) { try { return localStorage.getItem(key) || def; } catch(e) { return def; } }
+        function setSafeLocal(key, val) { try { localStorage.setItem(key, val); } catch(e) { console.warn("저장 차단됨"); } }
+        
         window.currentApiKey = getSafeLocal('myGeminiApiKey', "");
         window.currentModel = getSafeLocal('myGeminiModel', "gemini-1.5-flash");
         window.currentUser = null;
         window.currentTab = 'vent';
+        window.allMessages = []; // 채팅 기록 전부 모아두는 곳
+        window.initialWelcomeHtml = "";
+        window.renderedMsgIds = new Set();
+        
+        window.updateIconsSafely = function() { try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch(e) {} }
 
-        // 설정 창 열고 닫기
-        window.toggleSettings = function() {
-            const modal = document.getElementById('settings-modal');
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                if (window.currentApiKey) {
-                    document.getElementById('settings-api-key').value = window.currentApiKey;
-                    const btn = document.getElementById('btn-save-settings-key');
-                    if(btn) {
-                        btn.innerText = "저장됨";
-                        btn.classList.add('bg-green-600');
-                        btn.classList.remove('bg-zinc-700');
-                    }
-                }
-                document.getElementById('settings-ai-model').value = window.currentModel;
-                updateIconsSafely();
-            } else {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
+        // =========================================================================
+        // [🎨 웹 이미지 URL 설정 🎨]
+        // =========================================================================
+        const DEIDARA_PROFILE_URL = "https://i.imgur.com/aiLjgOE.png"; 
+        const DEIDARA_STANDING_IMAGES = {
+            "default": "https://i.imgur.com/aiLjgOE.png", 
+            "happy": "https://i.imgur.com/1AoN014.png",     
+            "playful": "https://i.imgur.com/QoG1mDT.png",     
+            "angry": "https://i.imgur.com/XBR6Kbb.png",     
+            "sad": "https://i.imgur.com/kbzlEeN.png",
+            "shy": "https://i.imgur.com/OoQmYv7.png",
+            "surprised": "https://i.imgur.com/4stRzFr.png"
         };
 
-        // 탭 전환
-        window.switchTab = function(tab) {
-            window.currentTab = tab;
-            ['vent', 'reframe', 'smallwin', 'motivate', 'breakdown'].forEach(t => {
-                const btn = document.getElementById(`tab-${t}`);
-                if(btn) {
-                    btn.classList.remove('tab-active');
-                    btn.classList.add('text-zinc-500');
-                }
-                const form = document.getElementById(`form-${t}`);
-                if(form) {
-                    form.classList.add('hidden');
-                    form.classList.remove('block');
-                }
-            });
-            document.getElementById(`tab-${tab}`).classList.add('tab-active');
-            document.getElementById(`tab-${tab}`).classList.remove('text-zinc-500');
-            document.getElementById(`form-${tab}`).classList.remove('hidden');
-            document.getElementById(`form-${tab}`).classList.add('block');
-        };
+        try {
+            document.getElementById('ui-profile').src = DEIDARA_PROFILE_URL;
+            document.getElementById('login-profile').src = DEIDARA_PROFILE_URL;
+            document.getElementById('ui-standing').src = DEIDARA_STANDING_IMAGES["default"];
+        } catch(e) {}
 
-        // 엔터키 전송 지원
+        // 초기 화면 세팅
         document.addEventListener('DOMContentLoaded', () => {
+            const welcomeMessages = [
+                "어이, 연지. 오늘은 내 생각 좀 했냐, 음?",
+                "기다리다 지루해서 다 터뜨려버릴 뻔했다. 빨리 네 얘기나 해봐라, 음.",
+                "딴 데 한눈팔지 마라. 네 우울함은 내가 다 날려줄 테니까, 음!",
+                "흥, 오늘도 간신히 버티고 온 모양이군. 수고했다고는 안 하겠다만... 뭐, 왔으면 됐다.",
+                "바보같이 혼자 땅 파고 있지 말고 말해라. 짜증 나니까, 음."
+            ];
+            const welcomeEl = document.getElementById('welcome-message');
+            if(welcomeEl) {
+                welcomeEl.innerText = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+                window.initialWelcomeHtml = document.getElementById('welcome-message-container').outerHTML;
+            }
+            window.updateIconsSafely();
+
+            // 엔터키 전송 연결
             document.querySelectorAll('input, textarea').forEach(el => {
                 el.addEventListener('keypress', function (e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -255,7 +272,7 @@
                 });
             });
 
-            // 설정 저장 버튼 이벤트 즉시 부착
+            // 설정 저장 버튼 연결
             const btnSaveKey = document.getElementById('btn-save-settings-key');
             if(btnSaveKey) {
                 btnSaveKey.addEventListener('click', () => {
@@ -282,58 +299,91 @@
                 });
             }
         });
-    </script>
 
-    <!-- Firebase 및 Gemini API 연동 모듈 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        // =========================================================================
+        // [🛠️ 탭 별 채팅 분리 및 렌더링 함수 🛠️]
+        // =========================================================================
+        window.updateChatUI = function() {
+            const chatContainer = document.getElementById('chat-container');
+            if(!chatContainer) return;
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(() => {});
+            // 로딩 아이콘 보존
+            const loadingEl = document.querySelector('div[id^="loading-"]');
+            const loadingHtml = loadingEl ? loadingEl.outerHTML : '';
+
+            // 채팅방 초기화 (환영 메시지만 남김)
+            chatContainer.innerHTML = window.initialWelcomeHtml || '';
+            window.renderedMsgIds.clear();
+
+            // '현재 탭'에 해당하는 메시지만 필터링 (옛날 메시지는 기본 'vent' 탭으로 분류)
+            const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab);
+            
+            tabMsgs.forEach(msg => {
+                window.renderedMsgIds.add(msg.id);
+                if (msg.role === 'user') {
+                    renderUserMessage(msg.text, msg.isReframe, msg.reframeGood, true);
+                } else if (msg.role === 'deidara') {
+                    renderDeidaraMessage(msg.text, true);
+                }
             });
-        }
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
-            authDomain: "deidara-70f6e.firebaseapp.com",
-            projectId: "deidara-70f6e",
-            storageBucket: "deidara-70f6e.firebasestorage.app",
-            messagingSenderId: "183278137031",
-            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
-            measurementId: "G-48XSYZ5F6L"
-        };
+            // 로딩이 돌고 있었다면 다시 붙여주기
+            if (loadingHtml) chatContainer.insertAdjacentHTML('beforeend', loadingHtml);
 
-        const DEIDARA_PROFILE_URL = "https://i.imgur.com/aiLjgOE.png"; 
-        const DEIDARA_STANDING_IMAGES = {
-            "default": "https://i.imgur.com/aiLjgOE.png", 
-            "happy": "https://i.imgur.com/1AoN014.png",     
-            "playful": "https://i.imgur.com/QoG1mDT.png",     
-            "angry": "https://i.imgur.com/XBR6Kbb.png",     
-            "sad": "https://i.imgur.com/kbzlEeN.png",
-            "shy": "https://i.imgur.com/OoQmYv7.png",
-            "surprised": "https://i.imgur.com/4stRzFr.png"
-        };
-        
-        try {
-            document.getElementById('ui-profile').src = DEIDARA_PROFILE_URL;
-            document.getElementById('login-profile').src = DEIDARA_PROFILE_URL;
-            document.getElementById('ui-standing').src = DEIDARA_STANDING_IMAGES["default"];
+            scrollToBottom();
+
+            // 현재 탭의 마지막 데이다라 감정으로 스탠딩 업데이트
+            const lastDeidara = [...tabMsgs].reverse().find(m => m.role === 'deidara');
+            if (lastDeidara && lastDeidara.emotion) {
+                updateStandingImage(lastDeidara.emotion);
+            } else {
+                updateStandingImage('default');
+            }
             window.updateIconsSafely();
-        } catch(e) {}
+        };
 
-        const welcomeMessages = [
-            "어이, 연지. 오늘은 내 생각 좀 했냐, 음?",
-            "기다리다 지루해서 다 터뜨려버릴 뻔했다. 빨리 네 얘기나 해봐라, 음.",
-            "딴 데 한눈팔지 마라. 네 우울함은 내가 다 날려줄 테니까, 음!",
-            "흥, 오늘도 간신히 버티고 온 모양이군. 수고했다고는 안 하겠다만... 뭐, 왔으면 됐다.",
-            "바보같이 혼자 땅 파고 있지 말고 말해라. 짜증 나니까, 음."
-        ];
-        try { document.getElementById('welcome-message').innerText = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]; } catch(e){}
+        window.toggleSettings = function() {
+            const modal = document.getElementById('settings-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                if (window.currentApiKey) {
+                    document.getElementById('settings-api-key').value = window.currentApiKey;
+                    const btn = document.getElementById('btn-save-settings-key');
+                    if(btn) {
+                        btn.innerText = "저장됨";
+                        btn.classList.add('bg-green-600');
+                        btn.classList.remove('bg-zinc-700');
+                    }
+                }
+                document.getElementById('settings-ai-model').value = window.currentModel;
+                window.updateIconsSafely();
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        };
 
-        // Firebase 안전 초기화
+        window.switchTab = function(tab) {
+            window.currentTab = tab;
+            ['vent', 'reframe', 'smallwin', 'motivate', 'breakdown'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if(btn) { btn.classList.remove('tab-active'); btn.classList.add('text-zinc-500'); }
+                const form = document.getElementById(`form-${t}`);
+                if(form) { form.classList.add('hidden'); form.classList.remove('block'); }
+            });
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            document.getElementById(`tab-${tab}`).classList.remove('text-zinc-500');
+            document.getElementById(`form-${tab}`).classList.remove('hidden');
+            document.getElementById(`form-${tab}`).classList.add('block');
+            
+            // 탭 변경 시 채팅방 다시 그리기!
+            window.updateChatUI();
+        };
+
+        // =========================================================================
+        // [🔥 Firebase 안전 연동 🔥]
+        // =========================================================================
         let app, auth, db, provider;
         try {
             app = initializeApp(firebaseConfig);
@@ -343,10 +393,8 @@
         } catch(e) { console.error("Firebase 로드 실패"); }
 
         const appId = 'deidara-mind-app'; 
-        const renderedMsgIds = new Set();
         const chatContainer = document.getElementById('chat-container');
 
-        // 오프라인 건너뛰기
         const btnSkip = document.getElementById('btn-skip-login');
         if(btnSkip) {
             btnSkip.addEventListener('click', () => {
@@ -359,7 +407,6 @@
             });
         }
 
-        // 로그아웃
         const btnLogout = document.getElementById('btn-logout');
         if(btnLogout) {
             btnLogout.addEventListener('click', () => {
@@ -456,9 +503,9 @@
             });
         }
 
-        function scrollToBottom() { chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' }); }
+        function scrollToBottom() { if(chatContainer) chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' }); }
 
-        function renderUserMessage(text, isReframe = false, reframeGood = '') {
+        function renderUserMessage(text, isReframe = false, reframeGood = '', silent = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex flex-col items-end gap-2 fade-in mt-4 mb-2';
             if (isReframe) {
@@ -469,11 +516,11 @@
             } else {
                 msgDiv.innerHTML = `<div class="bg-red-900/40 border border-red-800/50 text-red-50 px-4 sm:px-5 py-3 sm:py-3.5 rounded-2xl rounded-tr-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-sm leading-relaxed tracking-wide">${text}</div>`;
             }
-            chatContainer.appendChild(msgDiv);
-            scrollToBottom();
+            if(chatContainer) chatContainer.appendChild(msgDiv);
+            if(!silent) scrollToBottom();
         }
 
-        function renderDeidaraMessage(text) {
+        function renderDeidaraMessage(text, silent = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex items-start gap-3 fade-in mt-4 mb-2 w-full';
             const formattedText = text.replace(/\n/g, '<br>');
@@ -487,9 +534,8 @@
                     </div>
                 </div>
             `;
-            chatContainer.appendChild(msgDiv);
-            scrollToBottom();
-            window.updateIconsSafely();
+            if(chatContainer) chatContainer.appendChild(msgDiv);
+            if(!silent) scrollToBottom();
         }
 
         function showLoading() {
@@ -505,7 +551,7 @@
                     <div class="w-2 h-2 bg-yellow-500/80 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
                 </div>
             `;
-            chatContainer.appendChild(msgDiv);
+            if(chatContainer) chatContainer.appendChild(msgDiv);
             scrollToBottom();
             return loadingId;
         }
@@ -514,6 +560,7 @@
 
         function updateStandingImage(emotion) {
             const imgElement = document.getElementById('ui-standing');
+            if(!imgElement) return;
             const targetSrc = DEIDARA_STANDING_IMAGES[emotion] || DEIDARA_STANDING_IMAGES["default"];
             if(imgElement.src.includes(targetSrc.replace('https://', ''))) return;
             imgElement.style.opacity = 0;
@@ -525,31 +572,23 @@
             try {
                 const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
                 onSnapshot(chatsRef, (snapshot) => {
-                    const msgs = [];
-                    snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
-                    msgs.sort((a, b) => a.timestamp - b.timestamp);
-                    msgs.forEach(msg => {
-                        if (!renderedMsgIds.has(msg.id)) {
-                            renderedMsgIds.add(msg.id);
-                            if (msg.role === 'user') {
-                                renderUserMessage(msg.text, msg.isReframe, msg.reframeGood);
-                            } else if (msg.role === 'deidara') {
-                                renderDeidaraMessage(msg.text);
-                                if(msg.emotion) updateStandingImage(msg.emotion);
-                            }
-                        }
-                    });
+                    window.allMessages = []; // 모든 기록 저장
+                    snapshot.forEach(doc => window.allMessages.push({ id: doc.id, ...doc.data() }));
+                    window.allMessages.sort((a, b) => a.timestamp - b.timestamp);
+                    window.updateChatUI(); // 탭에 맞춰서 그림
                 }, (error) => console.error("Firestore Error:", error));
             } catch(e) {}
         }
 
         async function saveMessage(role, text, isReframe = false, reframeGood = '', emotion = 'default') {
+            const currentTab = window.currentTab;
             if (db && window.currentUser) {
                 const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
-                await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, timestamp: Date.now() });
+                await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, tab: currentTab, timestamp: Date.now() });
             } else {
-                if (role === 'user') renderUserMessage(text, isReframe, reframeGood);
-                if (role === 'deidara') { renderDeidaraMessage(text); updateStandingImage(emotion); }
+                // 오프라인 상태일 때 강제 주입
+                window.allMessages.push({ id: 'off-'+Date.now()+Math.random(), role, text, isReframe, reframeGood, emotion, tab: currentTab, timestamp: Date.now() });
+                window.updateChatUI();
             }
         }
 
@@ -617,12 +656,22 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
             for (let i = 0; i < delays.length; i++) {
                 try {
                     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+                    }
                     const data = await response.json();
-                    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (textResult) return JSON.parse(textResult);
+                    let textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (textResult) {
+                        textResult = textResult.replace(/```json\n?|```/g, '').trim();
+                        return JSON.parse(textResult);
+                    }
                 } catch (error) {
-                    if (i === delays.length - 1) return null;
+                    console.error("Gemini API Error:", error);
+                    if (i === delays.length - 1) {
+                        alert(`🚨 API 통신 오류 발생!\n\n오류 내용: ${error.message}\n\n💡 [안내] PC와 폰은 설정이 따로 저장됩니다! 폰의 환경 설정(톱니바퀴)에서 API 키를 정확히 입력하셨는지 다시 한번 확인해 주세요!`);
+                        return null;
+                    }
                     await new Promise(r => setTimeout(r, delays[i]));
                 }
             }
@@ -699,7 +748,7 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
                 const emotion = aiResponse.emotion || "default";
                 await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
             } else {
-                await saveMessage('deidara', "통신 장치가 터져버렸잖아! API 키가 틀렸거나 문제가 생겼다, 음.", false, '', 'angry');
+                await saveMessage('deidara', "통신 장치가 터져버렸잖아! 폰 설정(톱니바퀴)에서 API 키를 정확히 넣었는지 확인해라, 음!", false, '', 'angry');
             }
         };
     </script>
