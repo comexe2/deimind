@@ -51,8 +51,7 @@
     <!-- ⚙️ 환경 설정 모달 ⚙️ -->
     <div id="settings-modal" class="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm hidden flex-col items-center justify-center p-6 transition-opacity">
         <div class="bg-zinc-900 border border-zinc-700 rounded-2xl w-full max-w-sm p-6 relative shadow-[0_0_40px_rgba(0,0,0,0.8)] fade-in">
-            <!-- 닫기 버튼 -->
-            <button onclick="toggleSettings()" class="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors">
+            <button onclick="window.toggleSettings()" class="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors">
                 <i data-lucide="x" class="w-5 h-5"></i>
             </button>
             
@@ -62,12 +61,10 @@
             <p class="text-xs text-zinc-400 mb-6">통신 장치 설정이다. 음!</p>
             
             <div class="space-y-5">
-                <!-- API 키 및 모델 설정 -->
                 <div class="bg-black/50 p-4 rounded-xl border border-zinc-800">
                     <label class="block text-left text-[11px] text-zinc-400 mb-2 font-medium">Gemini API 키 (Google AI Studio 발급)</label>
                     <input type="password" id="settings-api-key" class="w-full bg-zinc-950 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 text-[14px] focus:outline-none focus:border-red-500 transition-all placeholder:text-zinc-600" placeholder="AIzaSy...">
                     
-                    <!-- AI 모델 선택 드롭다운 -->
                     <label class="block text-left text-[11px] text-zinc-400 mt-4 mb-2 font-medium">AI 두뇌 모델 선택</label>
                     <select id="settings-ai-model" class="w-full bg-zinc-950 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 text-[14px] focus:outline-none focus:border-red-500 transition-all">
                         <option value="gemini-1.5-flash">Gemini 1.5 Flash (기본/안정적)</option>
@@ -83,7 +80,6 @@
                     <p id="settings-key-status" class="text-left text-[11px] text-red-400 mt-2 hidden">올바른 키를 입력해라, 음!</p>
                 </div>
 
-                <!-- 계정 설정 -->
                 <div class="flex justify-between items-center bg-black/50 p-4 rounded-xl border border-zinc-800">
                     <span class="text-[12px] text-zinc-300 font-medium" id="settings-account-status">로그인 상태 확인 중...</span>
                     <button id="btn-logout" class="text-[11px] text-red-400 border border-red-900/50 hover:bg-red-900/30 px-3 py-1.5 rounded-lg transition-all hidden font-bold">로그아웃</button>
@@ -113,13 +109,11 @@
                     <p class="text-[12px] text-zinc-300 mt-1 font-medium tracking-wide">예술은 완벽이 아니라 폭발이다, 음!</p>
                 </div>
                 
-                <!-- 설정 메뉴 호출 영역 (프사 클릭) -->
                 <div class="relative group mt-1 cursor-pointer" onclick="window.toggleSettings()" title="설정 메뉴 열기">
                     <div class="absolute -inset-0.5 bg-gradient-to-tr from-yellow-400 to-red-600 rounded-full blur opacity-60 group-hover:opacity-100 transition duration-500"></div>
                     <img id="ui-profile" src="" alt="데이다라 프사" 
                          onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'"
                          class="relative w-14 h-14 rounded-full border-2 border-black object-cover shadow-2xl group-hover:ring-2 group-hover:ring-yellow-400 transition-all">
-                    <!-- 톱니바퀴 아이콘 힌트 -->
                     <div class="absolute -bottom-1 -right-1 bg-black rounded-full p-1 border border-zinc-700 shadow-lg">
                         <i data-lucide="settings" class="w-3 h-3 text-zinc-300"></i>
                     </div>
@@ -147,12 +141,10 @@
 
         <!-- Input Area -->
         <div class="p-4 sm:p-5 bg-[#0a0a0a] border-t border-zinc-900 shrink-0 relative z-10 shadow-[0_-15px_30px_-10px_rgba(0,0,0,0.9)] sm:rounded-b-[2rem]">
-            
             <div id="form-vent" class="block fade-in">
                 <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1">지금 느끼는 부정적인 감정이나 고민을 적어보세요.</label>
                 <textarea id="input-vent" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 주변 사람들은 다 취업하는데 나만 뒤처지는 것 같아 불안해..."></textarea>
             </div>
-
             <div id="form-reframe" class="hidden fade-in space-y-3 sm:space-y-4">
                 <div>
                     <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-1.5 sm:mb-2 ml-1">나를 깎아내리는 자동적 사고 (부정적 생각)</label>
@@ -165,17 +157,14 @@
                     <input type="text" id="input-reframe-good" class="w-full bg-yellow-950/10 text-yellow-50 border border-yellow-900/40 rounded-xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 transition-all placeholder:text-yellow-700/50 shadow-inner" placeholder="예: 완벽하지 않아도 괜찮아. 지금부터 다시 시작하면 돼.">
                 </div>
             </div>
-
             <div id="form-smallwin" class="hidden fade-in">
                 <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1">오늘 하루, 무기력을 뚫고 해낸 일상이나 과제를 적어보세요.</label>
                 <input type="text" id="input-smallwin" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 약 챙겨 먹기, 과제 1페이지 쓰기, 방청소 등">
             </div>
-
             <div id="form-motivate" class="hidden fade-in">
                 <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1">완벽주의나 무기력 때문에 시작하기 두려운 일이 있나요?</label>
                 <textarea id="input-motivate" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3 sm:p-4 text-[14px] sm:text-[15px] focus:outline-none focus:border-yellow-500 focus:ring-1 focus:ring-yellow-500 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 내일까지 기획서 초안을 써야 하는데, 잘 못 쓸까 봐 도피하고 있어..."></textarea>
             </div>
-
             <div id="form-breakdown" class="hidden fade-in">
                 <label class="block text-[11px] sm:text-xs font-medium text-zinc-400 mb-2 ml-1 flex items-center gap-1.5">
                     막막한 큰 목표를 데이다라가 아주 작게 쪼개드립니다
@@ -199,22 +188,114 @@
         </div>
     </div>
 
-    <!-- Firebase 및 Gemini API 연동 -->
+    <!-- 전역 UI 스크립트 (통신 에러가 나도 화면 UI는 절대 멈추지 않도록 최상단으로 분리) -->
+    <script>
+        // 안전한 로컬 스토리지 접근
+        function getSafeLocal(key, def) { try { return localStorage.getItem(key) || def; } catch(e) { return def; } }
+        function setSafeLocal(key, val) { try { localStorage.setItem(key, val); } catch(e) { console.warn("저장 공간이 차단되었습니다."); } }
+        function updateIconsSafely() { try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch(e) {} }
+
+        window.currentApiKey = getSafeLocal('myGeminiApiKey', "");
+        window.currentModel = getSafeLocal('myGeminiModel', "gemini-1.5-flash");
+        window.currentUser = null;
+        window.currentTab = 'vent';
+
+        // 설정 창 열고 닫기
+        window.toggleSettings = function() {
+            const modal = document.getElementById('settings-modal');
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                if (window.currentApiKey) {
+                    document.getElementById('settings-api-key').value = window.currentApiKey;
+                    const btn = document.getElementById('btn-save-settings-key');
+                    if(btn) {
+                        btn.innerText = "저장됨";
+                        btn.classList.add('bg-green-600');
+                        btn.classList.remove('bg-zinc-700');
+                    }
+                }
+                document.getElementById('settings-ai-model').value = window.currentModel;
+                updateIconsSafely();
+            } else {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        };
+
+        // 탭 전환
+        window.switchTab = function(tab) {
+            window.currentTab = tab;
+            ['vent', 'reframe', 'smallwin', 'motivate', 'breakdown'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
+                if(btn) {
+                    btn.classList.remove('tab-active');
+                    btn.classList.add('text-zinc-500');
+                }
+                const form = document.getElementById(`form-${t}`);
+                if(form) {
+                    form.classList.add('hidden');
+                    form.classList.remove('block');
+                }
+            });
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            document.getElementById(`tab-${tab}`).classList.remove('text-zinc-500');
+            document.getElementById(`form-${tab}`).classList.remove('hidden');
+            document.getElementById(`form-${tab}`).classList.add('block');
+        };
+
+        // 엔터키 전송 지원
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input, textarea').forEach(el => {
+                el.addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if(typeof window.handleSubmit === 'function') window.handleSubmit();
+                    }
+                });
+            });
+
+            // 설정 저장 버튼 이벤트 즉시 부착
+            const btnSaveKey = document.getElementById('btn-save-settings-key');
+            if(btnSaveKey) {
+                btnSaveKey.addEventListener('click', () => {
+                    const key = document.getElementById('settings-api-key').value.trim();
+                    const model = document.getElementById('settings-ai-model').value;
+                    const keyStatusMsg = document.getElementById('settings-key-status');
+                    
+                    if(key.length > 30) {
+                        setSafeLocal('myGeminiApiKey', key);
+                        setSafeLocal('myGeminiModel', model);
+                        window.currentApiKey = key;
+                        window.currentModel = model;
+                        
+                        btnSaveKey.innerText = "저장 완료!";
+                        btnSaveKey.classList.remove('bg-zinc-700', 'hover:bg-zinc-600');
+                        btnSaveKey.classList.add('bg-green-600');
+                        keyStatusMsg.classList.add('hidden');
+                        
+                        setTimeout(() => window.toggleSettings(), 800);
+                    } else {
+                        keyStatusMsg.innerText = "올바른 API 키를 입력해라, 음!";
+                        keyStatusMsg.classList.remove('hidden');
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- Firebase 및 Gemini API 연동 모듈 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // PWA 서비스 워커 등록
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW 실패: ', err));
+                navigator.serviceWorker.register('./sw.js').catch(() => {});
             });
         }
 
-        // =========================================================================
-        // [🛑 필수 설정 1: 연지님의 Firebase 설정 🛑]
-        // =========================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
             authDomain: "deidara-70f6e.firebaseapp.com",
@@ -225,71 +306,7 @@
             measurementId: "G-48XSYZ5F6L"
         };
 
-        // =========================================================================
-        // [🛑 필수 설정 2: Gemini API 키 및 모델 (보안 관리) 🛑]
-        // =========================================================================
-        let currentApiKey = localStorage.getItem('myGeminiApiKey') || "";
-        let currentModel = localStorage.getItem('myGeminiModel') || "gemini-1.5-flash";
-
-        // 환경 설정 모달 열고 닫기 로직
-        window.toggleSettings = function() {
-            const modal = document.getElementById('settings-modal');
-            if (modal.classList.contains('hidden')) {
-                // 창 열기
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-                
-                // 현재 저장된 상태 반영
-                if (currentApiKey) {
-                    document.getElementById('settings-api-key').value = currentApiKey;
-                    const btn = document.getElementById('btn-save-settings-key');
-                    btn.innerText = "저장됨";
-                    btn.classList.add('bg-green-600');
-                    btn.classList.remove('bg-zinc-700');
-                }
-                document.getElementById('settings-ai-model').value = currentModel;
-                lucide.createIcons();
-            } else {
-                // 창 닫기
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
-        };
-
-        // DOM이 준비된 후 이벤트 리스너 부착
-        window.addEventListener('DOMContentLoaded', () => {
-            const btnSaveKey = document.getElementById('btn-save-settings-key');
-            const keyStatusMsg = document.getElementById('settings-key-status');
-
-            btnSaveKey.addEventListener('click', () => {
-                const key = document.getElementById('settings-api-key').value.trim();
-                const model = document.getElementById('settings-ai-model').value;
-                if(key.length > 30) {
-                    localStorage.setItem('myGeminiApiKey', key);
-                    localStorage.setItem('myGeminiModel', model);
-                    currentApiKey = key;
-                    currentModel = model;
-                    
-                    btnSaveKey.innerText = "저장 완료!";
-                    btnSaveKey.classList.remove('bg-zinc-700', 'hover:bg-zinc-600');
-                    btnSaveKey.classList.add('bg-green-600');
-                    keyStatusMsg.classList.add('hidden');
-                    
-                    // 저장 후 자동으로 창 닫기
-                    setTimeout(() => window.toggleSettings(), 800);
-                } else {
-                    keyStatusMsg.innerText = "올바른 API 키를 입력해라, 음!";
-                    keyStatusMsg.classList.remove('hidden');
-                }
-            });
-        });
-
-        // =========================================================================
-        // [🎨 웹 이미지 URL 설정 🎨]
-        // =========================================================================
-        const DEIDARA_PROFILE_URL = "https://i.imgur.com/aiLjgOE.png"; // 프사가 비어있어 무표정으로 임시 채움
-        
-        // 연지님이 준비한 7가지 표정 매핑
+        const DEIDARA_PROFILE_URL = "https://i.imgur.com/aiLjgOE.png"; 
         const DEIDARA_STANDING_IMAGES = {
             "default": "https://i.imgur.com/aiLjgOE.png", 
             "happy": "https://i.imgur.com/1AoN014.png",     
@@ -300,11 +317,12 @@
             "surprised": "https://i.imgur.com/4stRzFr.png"
         };
         
-        document.getElementById('ui-profile').src = DEIDARA_PROFILE_URL;
-        document.getElementById('login-profile').src = DEIDARA_PROFILE_URL;
-        document.getElementById('ui-standing').src = DEIDARA_STANDING_IMAGES["default"];
-
-        lucide.createIcons();
+        try {
+            document.getElementById('ui-profile').src = DEIDARA_PROFILE_URL;
+            document.getElementById('login-profile').src = DEIDARA_PROFILE_URL;
+            document.getElementById('ui-standing').src = DEIDARA_STANDING_IMAGES["default"];
+            window.updateIconsSafely();
+        } catch(e) {}
 
         const welcomeMessages = [
             "어이, 연지. 오늘은 내 생각 좀 했냐, 음?",
@@ -313,45 +331,48 @@
             "흥, 오늘도 간신히 버티고 온 모양이군. 수고했다고는 안 하겠다만... 뭐, 왔으면 됐다.",
             "바보같이 혼자 땅 파고 있지 말고 말해라. 짜증 나니까, 음."
         ];
-        document.getElementById('welcome-message').innerText = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
+        try { document.getElementById('welcome-message').innerText = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]; } catch(e){}
 
-        // Firebase 초기화
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const provider = new GoogleAuthProvider();
+        // Firebase 안전 초기화
+        let app, auth, db, provider;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            provider = new GoogleAuthProvider();
+        } catch(e) { console.error("Firebase 로드 실패"); }
 
-        let currentUser = null;
         const appId = 'deidara-mind-app'; 
         const renderedMsgIds = new Set();
         const chatContainer = document.getElementById('chat-container');
 
-        // =========================================================================
-        // [🚀 로그인, 로그아웃 및 인앱 브라우저 차단 로직 🚀]
-        // =========================================================================
-        
-        document.getElementById('btn-skip-login').addEventListener('click', () => {
-            const overlay = document.getElementById('login-overlay');
-            overlay.style.opacity = '0';
-            setTimeout(() => overlay.style.display = 'none', 500);
-            document.getElementById('sync-status').innerText = '오프라인 모드 (동기화 불가)';
-            document.getElementById('settings-account-status').innerText = '오프라인 (동기화 안됨)';
-            currentUser = null;
-        });
+        // 오프라인 건너뛰기
+        const btnSkip = document.getElementById('btn-skip-login');
+        if(btnSkip) {
+            btnSkip.addEventListener('click', () => {
+                const overlay = document.getElementById('login-overlay');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
+                document.getElementById('sync-status').innerText = '오프라인 모드 (동기화 불가)';
+                document.getElementById('settings-account-status').innerText = '오프라인 (동기화 안됨)';
+                window.currentUser = null;
+            });
+        }
 
-        // 로그아웃 로직 (설정 창에 존재)
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            if(confirm("기록 동기화를 멈추고 로그아웃할 거냐, 음?")) {
-                signOut(auth).then(() => {
-                    window.location.reload(); // 새로고침해서 초기화
-                });
-            }
-        });
+        // 로그아웃
+        const btnLogout = document.getElementById('btn-logout');
+        if(btnLogout) {
+            btnLogout.addEventListener('click', () => {
+                if(confirm("기록 동기화를 멈추고 로그아웃할 거냐, 음?")) {
+                    if(auth) signOut(auth).then(() => window.location.reload());
+                }
+            });
+        }
 
         const isAppBrowser = navigator.userAgent.match(/kakaotalk|instagram|naver|line/i);
-
-        if (isAppBrowser) {
-            const overlay = document.getElementById('login-overlay');
+        const overlay = document.getElementById('login-overlay');
+        
+        if (isAppBrowser && overlay) {
             overlay.classList.remove('hidden');
             overlay.innerHTML = `
                 <div class="bg-zinc-900 p-6 rounded-3xl border-2 border-red-500 shadow-[0_0_30px_rgba(220,38,38,0.3)] max-w-sm w-full mx-4 flex flex-col items-center">
@@ -368,74 +389,73 @@
                     </p>
                 </div>
             `;
-            lucide.createIcons();
+            window.updateIconsSafely();
         } else {
             const btnLogin = document.getElementById('btn-google-login');
-            btnLogin.addEventListener('click', async () => {
-                const originalHtml = btnLogin.innerHTML;
-                if (window.location.protocol === 'file:') {
-                    alert("[로컬 파일 실행 중]\n\n컴퓨터에 다운로드된 파일(file://)에서는 구글 로그인이 차단됩니다.\nGitHub Pages 등에 업로드한 후 접속해주세요!");
-                    return;
-                }
+            if(btnLogin) {
+                btnLogin.addEventListener('click', async () => {
+                    const originalHtml = btnLogin.innerHTML;
+                    if (window.location.protocol === 'file:') {
+                        alert("[로컬 파일 실행 중]\n\n컴퓨터에 다운로드된 파일(file://)에서는 구글 로그인이 차단됩니다.\nGitHub Pages 등에 업로드한 후 접속해주세요!");
+                        return;
+                    }
 
-                btnLogin.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> 로그인 처리 중...';
-                lucide.createIcons();
-                btnLogin.classList.add('opacity-50', 'pointer-events-none');
+                    btnLogin.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> 로그인 처리 중...';
+                    window.updateIconsSafely();
+                    btnLogin.classList.add('opacity-50', 'pointer-events-none');
 
-                try {
-                    const result = await signInWithPopup(auth, provider);
-                    currentUser = result.user;
-                    
+                    try {
+                        if(!auth) throw new Error("Firebase auth not initialized");
+                        const result = await signInWithPopup(auth, provider);
+                        window.currentUser = result.user;
+                        
+                        document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (연동됨)';
+                        document.getElementById('settings-account-status').innerText = '구글 계정 연동됨';
+                        document.getElementById('btn-logout').classList.remove('hidden');
+                        
+                        overlay.style.opacity = '0';
+                        setTimeout(() => overlay.style.display = 'none', 500);
+                        loadChatHistory();
+
+                    } catch (error) {
+                        console.error("Login Error:", error);
+                        btnLogin.innerHTML = originalHtml;
+                        btnLogin.classList.remove('opacity-50', 'pointer-events-none');
+                        window.updateIconsSafely();
+                        
+                        if (error.code === 'auth/unauthorized-domain') {
+                            alert(`[도메인 승인 오류!]\n\n파이어베이스에 다음 주소가 등록되지 않았습니다:\n[ ${window.location.hostname} ]\n\nFirebase 콘솔 -> Authentication -> Settings -> 승인된 도메인에 위 주소를 정확히 추가해주세요.`);
+                        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                            alert("로그인 요청에 실패했습니다: " + error.message);
+                        }
+                    }
+                });
+            }
+        }
+
+        if(auth) {
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    window.currentUser = user;
                     document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (연동됨)';
                     document.getElementById('settings-account-status').innerText = '구글 계정 연동됨';
                     document.getElementById('btn-logout').classList.remove('hidden');
                     
-                    const overlay = document.getElementById('login-overlay');
-                    overlay.style.opacity = '0';
-                    setTimeout(() => overlay.style.display = 'none', 500);
+                    if(overlay) overlay.style.display = 'none';
                     loadChatHistory();
+                } else if (!isAppBrowser && overlay) {
+                    window.currentUser = null;
+                    document.getElementById('sync-status').innerText = '로그인 대기 중...';
+                    document.getElementById('settings-account-status').innerText = '오프라인 (동기화 안됨)';
+                    document.getElementById('btn-logout').classList.add('hidden');
 
-                } catch (error) {
-                    console.error("Login Error:", error);
-                    btnLogin.innerHTML = originalHtml;
-                    btnLogin.classList.remove('opacity-50', 'pointer-events-none');
-                    lucide.createIcons();
-                    
-                    if (error.code === 'auth/unauthorized-domain') {
-                        alert(`[도메인 승인 오류!]\n\n파이어베이스에 다음 주소가 등록되지 않았습니다:\n[ ${window.location.hostname} ]\n\nFirebase 콘솔 -> Authentication -> Settings -> 승인된 도메인에 위 주소를 정확히 추가해주세요.`);
-                    } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                        alert("로그인 요청에 실패했습니다: " + error.message);
-                    }
+                    overlay.classList.remove('hidden');
+                    overlay.style.display = 'flex';
+                    setTimeout(() => overlay.style.opacity = '1', 10);
                 }
             });
         }
 
-        onAuthStateChanged(auth, (user) => {
-            const overlay = document.getElementById('login-overlay');
-            if (user) {
-                currentUser = user;
-                document.getElementById('sync-status').innerText = '클라우드 동기화 켜짐 (연동됨)';
-                
-                // 설정 창 업데이트
-                document.getElementById('settings-account-status').innerText = '구글 계정 연동됨';
-                document.getElementById('btn-logout').classList.remove('hidden');
-
-                overlay.style.display = 'none'; // 바로 숨김 (이미 로그인 상태이므로)
-                loadChatHistory();
-            } else if (!isAppBrowser) {
-                currentUser = null;
-                document.getElementById('sync-status').innerText = '로그인 대기 중...';
-                
-                document.getElementById('settings-account-status').innerText = '오프라인 (동기화 안됨)';
-                document.getElementById('btn-logout').classList.add('hidden');
-
-                overlay.classList.remove('hidden'); // 보여주기
-                overlay.style.display = 'flex';
-                setTimeout(() => overlay.style.opacity = '1', 10);
-            }
-        });
-
-        // UI 렌더링 함수
         function scrollToBottom() { chatContainer.scrollTo({ top: chatContainer.scrollHeight, behavior: 'smooth' }); }
 
         function renderUserMessage(text, isReframe = false, reframeGood = '') {
@@ -469,7 +489,7 @@
             `;
             chatContainer.appendChild(msgDiv);
             scrollToBottom();
-            lucide.createIcons();
+            window.updateIconsSafely();
         }
 
         function showLoading() {
@@ -494,18 +514,16 @@
 
         function updateStandingImage(emotion) {
             const imgElement = document.getElementById('ui-standing');
-            // AI가 잘못된 감정을 보내면 무표정(default)으로 처리
             const targetSrc = DEIDARA_STANDING_IMAGES[emotion] || DEIDARA_STANDING_IMAGES["default"];
             if(imgElement.src.includes(targetSrc.replace('https://', ''))) return;
             imgElement.style.opacity = 0;
             setTimeout(() => { imgElement.src = targetSrc; imgElement.style.opacity = 0.95; }, 300);
         }
 
-        // Firestore 연동
         function loadChatHistory() {
-            if (!db || !currentUser) return;
+            if (!db || !window.currentUser) return;
             try {
-                const chatsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'chats');
+                const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
                 onSnapshot(chatsRef, (snapshot) => {
                     const msgs = [];
                     snapshot.forEach(doc => msgs.push({ id: doc.id, ...doc.data() }));
@@ -521,15 +539,13 @@
                             }
                         }
                     });
-                }, (error) => {
-                    console.error("Firestore Error:", error);
-                });
-            } catch(e) { console.error("loadChatHistory Error:", e); }
+                }, (error) => console.error("Firestore Error:", error));
+            } catch(e) {}
         }
 
         async function saveMessage(role, text, isReframe = false, reframeGood = '', emotion = 'default') {
-            if (db && currentUser) {
-                const chatsRef = collection(db, 'artifacts', appId, 'users', currentUser.uid, 'chats');
+            if (db && window.currentUser) {
+                const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
                 await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, timestamp: Date.now() });
             } else {
                 if (role === 'user') renderUserMessage(text, isReframe, reframeGood);
@@ -595,7 +611,7 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
                 }
             };
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${currentApiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${window.currentModel}:generateContent?key=${window.currentApiKey}`;
             const delays = [1000, 2000, 4000, 8000, 16000];
 
             for (let i = 0; i < delays.length; i++) {
@@ -612,27 +628,8 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
             }
         }
 
-        // 탭 및 전송 이벤트
-        let currentTab = 'vent';
-        window.switchTab = function(tab) {
-            currentTab = tab;
-            ['vent', 'reframe', 'smallwin', 'motivate', 'breakdown'].forEach(t => {
-                const btn = document.getElementById(`tab-${t}`);
-                btn.classList.remove('tab-active');
-                btn.classList.add('text-zinc-500');
-                const form = document.getElementById(`form-${t}`);
-                form.classList.add('hidden');
-                form.classList.remove('block');
-            });
-            document.getElementById(`tab-${tab}`).classList.add('tab-active');
-            document.getElementById(`tab-${tab}`).classList.remove('text-zinc-500');
-            document.getElementById(`form-${tab}`).classList.remove('hidden');
-            document.getElementById(`form-${tab}`).classList.add('block');
-        }
-
         window.handleSubmit = async function() {
-            // API 키가 없으면 환경 설정 창 열어주기
-            if (!currentApiKey) {
+            if (!window.currentApiKey) {
                 window.toggleSettings();
                 const statusMsg = document.getElementById('settings-key-status');
                 statusMsg.innerText = "통신을 위해 API 키를 먼저 저장해라, 음!";
@@ -640,8 +637,9 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
                 return;
             }
 
-            if (!currentUser) {
-                if (document.getElementById('sync-status').innerText.includes('오프라인')) {
+            if (!window.currentUser) {
+                const syncStatus = document.getElementById('sync-status');
+                if (syncStatus && syncStatus.innerText.includes('오프라인')) {
                     // 통과
                 } else {
                     alert("구글 로그인을 먼저 진행해주세요!");
@@ -651,6 +649,8 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
 
             const btn = document.getElementById('submit-btn');
             let userText = "", logText = "", reframeGood = "";
+
+            const currentTab = window.currentTab;
 
             if (currentTab === 'vent') {
                 const input = document.getElementById('input-vent');
@@ -681,15 +681,19 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
                 input.value = ''; await saveMessage('user', logText);
             }
 
-            btn.disabled = true;
-            btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
+            if(btn) {
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
+            }
             const loadingId = showLoading();
 
             const aiResponse = await callGeminiAPI(userText, currentTab);
 
             removeLoading(loadingId);
-            btn.disabled = false;
-            btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
+            if(btn) {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
+            }
 
             if (aiResponse && aiResponse.deidara) {
                 const emotion = aiResponse.emotion || "default";
@@ -697,17 +701,7 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
             } else {
                 await saveMessage('deidara', "통신 장치가 터져버렸잖아! API 키가 틀렸거나 문제가 생겼다, 음.", false, '', 'angry');
             }
-        }
-
-        document.querySelectorAll('input, textarea').forEach(el => {
-            el.addEventListener('keypress', function (e) {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    window.handleSubmit();
-                }
-            });
-        });
-
+        };
     </script>
 </body>
 </html>
