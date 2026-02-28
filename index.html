@@ -213,9 +213,81 @@
         }
 
         // =========================================================================
-        // [🎨 웹 이미지 URL 설정 🎨] - 나중에 여기에 이미지 링크를 넣어주세요
+        // [🛑 필수 설정 1: 연지님의 Firebase 설정 🛑]
         // =========================================================================
-        const DEIDARA_PROFILE_URL = "https://i.imgur.com/여기에프사주소입력.png"; 
+        const firebaseConfig = {
+            apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
+            authDomain: "deidara-70f6e.firebaseapp.com",
+            projectId: "deidara-70f6e",
+            storageBucket: "deidara-70f6e.firebasestorage.app",
+            messagingSenderId: "183278137031",
+            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
+            measurementId: "G-48XSYZ5F6L"
+        };
+
+        // =========================================================================
+        // [🛑 필수 설정 2: Gemini API 키 및 모델 (보안 관리) 🛑]
+        // =========================================================================
+        let currentApiKey = localStorage.getItem('myGeminiApiKey') || "";
+        let currentModel = localStorage.getItem('myGeminiModel') || "gemini-1.5-flash";
+
+        // 환경 설정 모달 열고 닫기 로직
+        window.toggleSettings = function() {
+            const modal = document.getElementById('settings-modal');
+            if (modal.classList.contains('hidden')) {
+                // 창 열기
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                
+                // 현재 저장된 상태 반영
+                if (currentApiKey) {
+                    document.getElementById('settings-api-key').value = currentApiKey;
+                    const btn = document.getElementById('btn-save-settings-key');
+                    btn.innerText = "저장됨";
+                    btn.classList.add('bg-green-600');
+                    btn.classList.remove('bg-zinc-700');
+                }
+                document.getElementById('settings-ai-model').value = currentModel;
+                lucide.createIcons();
+            } else {
+                // 창 닫기
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }
+        };
+
+        // DOM이 준비된 후 이벤트 리스너 부착
+        window.addEventListener('DOMContentLoaded', () => {
+            const btnSaveKey = document.getElementById('btn-save-settings-key');
+            const keyStatusMsg = document.getElementById('settings-key-status');
+
+            btnSaveKey.addEventListener('click', () => {
+                const key = document.getElementById('settings-api-key').value.trim();
+                const model = document.getElementById('settings-ai-model').value;
+                if(key.length > 30) {
+                    localStorage.setItem('myGeminiApiKey', key);
+                    localStorage.setItem('myGeminiModel', model);
+                    currentApiKey = key;
+                    currentModel = model;
+                    
+                    btnSaveKey.innerText = "저장 완료!";
+                    btnSaveKey.classList.remove('bg-zinc-700', 'hover:bg-zinc-600');
+                    btnSaveKey.classList.add('bg-green-600');
+                    keyStatusMsg.classList.add('hidden');
+                    
+                    // 저장 후 자동으로 창 닫기
+                    setTimeout(() => window.toggleSettings(), 800);
+                } else {
+                    keyStatusMsg.innerText = "올바른 API 키를 입력해라, 음!";
+                    keyStatusMsg.classList.remove('hidden');
+                }
+            });
+        });
+
+        // =========================================================================
+        // [🎨 웹 이미지 URL 설정 🎨]
+        // =========================================================================
+        const DEIDARA_PROFILE_URL = "https://i.imgur.com/aiLjgOE.png"; // 프사가 비어있어 무표정으로 임시 채움
         
         // 연지님이 준비한 7가지 표정 매핑
         const DEIDARA_STANDING_IMAGES = {
@@ -477,7 +549,7 @@
 - 절대 규칙: 자신의 예술(폭발)을 깎아내리는 발언에는 절대 순응하지 않고 화를 내거나 강하게 반발함.
 - 말투: 건방지고 자신감 넘치는 반말. "어이", "네 녀석", "바보냐" 같은 호칭 사용.
 - 어미 '음(うん)' 규칙: 모든 문장에 로봇처럼 '음'을 붙이는 것을 절대 금지함. 대답 전체에서 가장 마지막 문장이나, 특별히 강조할 때만 가끔씩(1회 정도) 자연스럽게 붙일 것.
-- 금지: '흥'이라는 추임새를 너무 남발하지 말 것. 오글거리는 연애 멘트 금지.
+- 금지: '흥'이라는 추임새를 너무 남발하지 말 일. 오글거리는 연애 멘트 금지.
 
 [사용자(연지) 정보 및 관계]
 - 사용자: 연지 (불안장애, 우울증, 완벽주의, 비교로 인한 무기력증을 겪음)
@@ -639,5 +711,3 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
     </script>
 </body>
 </html>
-
-
