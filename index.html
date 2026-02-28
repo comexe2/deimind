@@ -488,31 +488,41 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                 }
             };
 
-            // 퍼블릭 API 키에서 가장 안정적으로 작동하는 1.5-pro 모델로 변경
+            // 가장 똑똑하고 정식으로 열려있는 최신 모델(1.5-pro)로 원복했습니다.
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
-            const delays = [1000, 2000, 4000, 8000, 16000];
-            let lastError = "알 수 없는 오류";
+            const delays = [1000, 2000, 4000]; // 무한 로딩을 막기 위해 3번만 재시도합니다.
+            let lastError = "알 수 없는 오류가 발생했습니다.";
 
             for (let i = 0; i < delays.length; i++) {
                 try {
                     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                    
                     if (!response.ok) {
-                        const err = await response.json();
-                        console.error("Gemini API 에러 상세:", err);
-                        throw new Error(err.error?.message || `HTTP error! status: ${response.status}`);
+                        let errDetail = `HTTP ${response.status} 에러`;
+                        try {
+                            const err = await response.json();
+                            errDetail = err.error?.message || errDetail;
+                        } catch(e) {}
+                        console.error("Gemini API 에러 상세:", errDetail);
+                        throw new Error(errDetail);
                     }
                     
                     const data = await response.json();
                     let textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
                     
-                    if (textResult) {
-                        // AI가 마크다운 텍스트 찌꺼기를 보내더라도 JSON만 완벽하게 걸러내는 코드
-                        const jsonMatch = textResult.match(/\{[\s\S]*\}/);
-                        if (jsonMatch) {
-                            return JSON.parse(jsonMatch[0]);
-                        } else {
-                            throw new Error("AI가 JSON 형식이 아닌 이상한 답변을 보냈습니다.");
+                    if (!textResult) {
+                        throw new Error("AI가 응답을 생성하지 못했습니다. (빈 데이터 반환)");
+                    }
+                    
+                    const jsonMatch = textResult.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        if (!parsed.deidara) {
+                            throw new Error("AI가 정해진 형식을 지키지 않았습니다. 원본: " + textResult);
                         }
+                        return parsed;
+                    } else {
+                        throw new Error("AI가 이상한 답변을 보냈습니다. 원본: " + textResult);
                     }
                 } catch (error) {
                     console.error("통신 실패 (재시도 중):", error);
@@ -521,6 +531,8 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                     await new Promise(r => setTimeout(r, delays[i]));
                 }
             }
+            // 루프가 끝나면 무조건 에러를 반환하여 놓치는 에러가 없도록 강제합니다.
+            return { error: lastError };
         }
 
         // 탭 및 전송 이벤트
@@ -597,10 +609,10 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                 const emotion = aiResponse.emotion || "default";
                 await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
             } else if (aiResponse && aiResponse.error) {
-                // 어떤 에러 때문에 통신이 터졌는지 화면에 직접 뿌려줍니다!
-                await saveMessage('deidara', `[시스템 에러] 통신 장치가 터졌다, 음!\n에러 원인: ${aiResponse.error}`, false, '', 'angry');
+                // 어떤 에러 때문에 통신이 터졌는지 확실하게 화면에 뿌려줍니다!
+                await saveMessage('deidara', `[시스템 에러] 통신 장치가 터졌다, 음!\n\n🔍 **에러 상세 원인:**\n${aiResponse.error}`, false, '', 'angry');
             } else {
-                await saveMessage('deidara', "통신 장치가 터져버렸잖아! 잠시 후에 다시 시도해봐라, 음.", false, '', 'angry');
+                await saveMessage('deidara', "[알 수 없는 에러] 통신 장치가 완전히 먹통이군. 잠시 후에 다시 시도해봐라, 음.", false, '', 'angry');
             }
         }
 
