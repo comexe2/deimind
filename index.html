@@ -75,7 +75,10 @@
 
                     <div class="flex justify-between items-center mt-4">
                         <button onclick="window.open('https://aistudio.google.com/app/apikey', '_blank')" class="text-[11px] text-blue-400 hover:text-blue-300 underline underline-offset-2">API 키 발급받기</button>
-                        <button id="btn-save-settings-key" class="bg-zinc-700 hover:bg-zinc-600 text-white text-[12px] px-4 py-1.5 rounded-lg transition-colors font-semibold">설정 저장</button>
+                        <div class="flex gap-2">
+                            <button id="btn-test-api" class="bg-blue-600 hover:bg-blue-500 text-white text-[12px] px-3 py-1.5 rounded-lg transition-colors font-semibold">통신 테스트</button>
+                            <button id="btn-save-settings-key" class="bg-zinc-700 hover:bg-zinc-600 text-white text-[12px] px-3 py-1.5 rounded-lg transition-colors font-semibold">설정 저장</button>
+                        </div>
                     </div>
                     <p id="settings-key-status" class="text-left text-[11px] text-red-400 mt-2 hidden">올바른 키를 입력해라, 음!</p>
                 </div>
@@ -271,6 +274,36 @@
                     }
                 });
             });
+
+            // 통신 테스트 버튼 연결
+            const btnTestApi = document.getElementById('btn-test-api');
+            if(btnTestApi) {
+                btnTestApi.addEventListener('click', async () => {
+                    const key = document.getElementById('settings-api-key').value.trim();
+                    const model = document.getElementById('settings-ai-model').value;
+                    if(key.length < 30) {
+                        alert("키가 너무 짧습니다! 끝까지 전체 복사되었는지 확인해주세요.");
+                        return;
+                    }
+                    btnTestApi.innerText = "확인 중...";
+                    try {
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({contents:[{parts:[{text:"hi"}]}]})
+                        });
+                        if(res.ok) {
+                            alert("✅ 연결 성공! 폰에서도 API가 정상 작동합니다. 옆에 [설정 저장] 버튼을 꼭 눌러주세요!");
+                        } else {
+                            const err = await res.json();
+                            alert(`❌ 연결 실패 (키 오류 의심)\n이유: ${err.error?.message}\n\n💡 복사 과정에서 띄어쓰기나 오타가 들어갔을 수 있습니다. 다시 복사해서 붙여넣어 보세요.`);
+                        }
+                    } catch(e) {
+                        alert(`❌ 연결 실패 (네트워크 차단)\n이유: ${e.message}\n\n💡 폰에 설치된 '광고 차단 앱(AdGuard 등)'이나, 브라우저의 '보안/추적 방지 기능'이 통신을 막고 있습니다. 해당 기능을 잠시 끄고 시도해 주세요!`);
+                    }
+                    btnTestApi.innerText = "통신 테스트";
+                });
+            }
 
             // 설정 저장 버튼 연결
             const btnSaveKey = document.getElementById('btn-save-settings-key');
