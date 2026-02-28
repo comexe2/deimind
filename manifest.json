@@ -1,0 +1,21 @@
+{
+  "name": "마음 아지트 - 데이다라",
+  "short_name": "마음 아지트",
+  "description": "완벽주의와 무기력을 날려버리는 데이다라와의 채팅 앱",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#ef4444",
+  "icons": [
+    {
+      "src": "./icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "./icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
