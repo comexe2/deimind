@@ -66,9 +66,19 @@
                 <div class="bg-black/50 p-4 rounded-xl border border-zinc-800">
                     <label class="block text-left text-[11px] text-zinc-400 mb-2 font-medium">Gemini API 키 (Google AI Studio 발급)</label>
                     <input type="password" id="settings-api-key" class="w-full bg-zinc-950 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 text-[14px] focus:outline-none focus:border-red-500 transition-all placeholder:text-zinc-600" placeholder="AIzaSy...">
-                    <div class="flex justify-between items-center mt-3">
+                    
+                    <!-- AI 모델 선택 드롭다운 추가 -->
+                    <label class="block text-left text-[11px] text-zinc-400 mt-4 mb-2 font-medium">AI 모델 선택</label>
+                    <select id="settings-ai-model" class="w-full bg-zinc-950 text-zinc-100 border border-zinc-700 rounded-lg p-2.5 text-[14px] focus:outline-none focus:border-red-500 transition-all">
+                        <option value="gemini-1.5-flash">Gemini 1.5 Flash (안정적, 권장)</option>
+                        <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                        <option value="gemini-2.5-pro">Gemini 2.5 Pro (고성능)</option>
+                        <option value="gemini-3.0-flash-preview">Gemini 3 Flash Preview</option>
+                    </select>
+
+                    <div class="flex justify-between items-center mt-4">
                         <button onclick="window.open('https://aistudio.google.com/app/apikey', '_blank')" class="text-[11px] text-blue-400 hover:text-blue-300 underline underline-offset-2">API 키 재발급 받으러 가기</button>
-                        <button id="btn-save-settings-key" class="bg-zinc-700 hover:bg-zinc-600 text-white text-[12px] px-4 py-1.5 rounded-lg transition-colors font-semibold">키 저장하기</button>
+                        <button id="btn-save-settings-key" class="bg-zinc-700 hover:bg-zinc-600 text-white text-[12px] px-4 py-1.5 rounded-lg transition-colors font-semibold">설정 저장</button>
                     </div>
                     <p id="settings-key-status" class="text-left text-[11px] text-red-400 mt-2 hidden">올바른 키를 입력해라, 음!</p>
                 </div>
@@ -219,8 +229,10 @@
         // [🛑 필수 설정 2: Gemini API 키 (보안 관리) 🛑]
         // =========================================================================
         let currentApiKey = localStorage.getItem('myGeminiApiKey') || "";
+        let currentModel = localStorage.getItem('myGeminiModel') || "gemini-1.5-flash";
 
         const inputKey = document.getElementById('settings-api-key');
+        const selectModel = document.getElementById('settings-ai-model');
         const btnSaveKey = document.getElementById('btn-save-settings-key');
         const keyStatusMsg = document.getElementById('settings-key-status');
         
@@ -232,13 +244,14 @@
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 
-                // 현재 키 상태 보여주기
+                // 현재 키 및 모델 상태 보여주기
                 if (currentApiKey) {
                     inputKey.value = currentApiKey;
                     btnSaveKey.innerText = "저장됨";
                     btnSaveKey.classList.add('bg-green-600');
                     btnSaveKey.classList.remove('bg-zinc-700');
                 }
+                selectModel.value = currentModel;
                 lucide.createIcons();
             } else {
                 // 닫기
@@ -250,9 +263,12 @@
         // 키 저장 버튼 이벤트
         btnSaveKey.addEventListener('click', () => {
             const key = inputKey.value.trim();
+            const model = selectModel.value;
             if(key.length > 30) {
                 localStorage.setItem('myGeminiApiKey', key);
+                localStorage.setItem('myGeminiModel', model);
                 currentApiKey = key;
+                currentModel = model;
                 btnSaveKey.innerText = "저장 완료!";
                 btnSaveKey.classList.remove('bg-zinc-700', 'hover:bg-zinc-600');
                 btnSaveKey.classList.add('bg-green-600');
@@ -565,18 +581,30 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                 }
             };
 
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${currentApiKey}`;
+            // 선택한 AI 모델을 URL에 적용합니다.
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${currentModel}:generateContent?key=${currentApiKey}`;
             const delays = [1000, 2000, 4000, 8000, 16000];
 
             for (let i = 0; i < delays.length; i++) {
                 try {
                     const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    if (!response.ok) {
+                        const errData = await response.json();
+                        throw new Error(errData.error?.message || `HTTP error! status: ${response.status}`);
+                    }
                     const data = await response.json();
-                    const textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
-                    if (textResult) return JSON.parse(textResult);
+                    let textResult = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (textResult) {
+                        // JSON 파싱 에러 방지를 위해 혹시 모를 마크다운 태그를 제거합니다.
+                        textResult = textResult.replace(/```json\n?|```/g, '').trim();
+                        return JSON.parse(textResult);
+                    }
                 } catch (error) {
-                    if (i === delays.length - 1) return null;
+                    console.error("Gemini API 통신 에러:", error);
+                    if (i === delays.length - 1) {
+                        alert("API 통신 오류가 발생했습니다:\n" + error.message);
+                        return null;
+                    }
                     await new Promise(r => setTimeout(r, delays[i]));
                 }
             }
@@ -665,6 +693,7 @@ emotion 값: "default", "angry", "smirk", "happy", "serious"
                 const emotion = aiResponse.emotion || "default";
                 await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
             } else {
+                // 에러 발생 시 UI 알림 (자세한 이유는 이제 alert로 뜹니다)
                 await saveMessage('deidara', "통신 장치가 터져버렸잖아! API 키가 틀렸거나 문제가 생겼다, 음.", false, '', 'angry');
             }
         }
