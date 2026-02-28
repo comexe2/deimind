@@ -70,7 +70,7 @@
                         <option value="gemini-1.5-flash">Gemini 1.5 Flash (기본/안정적)</option>
                         <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
                         <option value="gemini-2.5-pro">Gemini 2.5 Pro (고성능)</option>
-                        <option value="gemini-3.0-flash-preview">Gemini 3 Flash Preview (최신)</option>
+                        <option value="gemini-3.0-flash">Gemini 3.0 Flash</option>
                     </select>
 
                     <div class="flex justify-between items-center mt-4">
@@ -191,20 +191,15 @@
         </div>
     </div>
 
-    <!-- 하나의 통합 모듈 스크립트로 분리 없는 안정적인 처리 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // 서비스 워커
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js').catch(() => {}); });
         }
 
-        // =========================================================================
-        // [🛑 필수 설정 1: 연지님의 Firebase 설정 🛑]
-        // =========================================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
             authDomain: "deidara-70f6e.firebaseapp.com",
@@ -215,7 +210,6 @@
             measurementId: "G-48XSYZ5F6L"
         };
 
-        // 안전한 로컬 저장소 접근
         function getSafeLocal(key, def) { try { return localStorage.getItem(key) || def; } catch(e) { return def; } }
         function setSafeLocal(key, val) { try { localStorage.setItem(key, val); } catch(e) { console.warn("저장 차단됨"); } }
         
@@ -223,15 +217,12 @@
         window.currentModel = getSafeLocal('myGeminiModel', "gemini-1.5-flash");
         window.currentUser = null;
         window.currentTab = 'vent';
-        window.allMessages = []; // 채팅 기록 전부 모아두는 곳
+        window.allMessages = []; 
         window.initialWelcomeHtml = "";
         window.renderedMsgIds = new Set();
         
         window.updateIconsSafely = function() { try { if (typeof lucide !== 'undefined') lucide.createIcons(); } catch(e) {} }
 
-        // =========================================================================
-        // [🎨 웹 이미지 URL 설정 🎨]
-        // =========================================================================
         const DEIDARA_PROFILE_URL = "https://i.imgur.com/aiLjgOE.png"; 
         const DEIDARA_STANDING_IMAGES = {
             "default": "https://i.imgur.com/aiLjgOE.png", 
@@ -249,8 +240,8 @@
             document.getElementById('ui-standing').src = DEIDARA_STANDING_IMAGES["default"];
         } catch(e) {}
 
-        // 초기 화면 세팅
-        document.addEventListener('DOMContentLoaded', () => {
+        // 완전히 안전하게 웰컴 메시지 저장하기
+        function initWelcomeMessage() {
             const welcomeMessages = [
                 "어이, 연지. 오늘은 내 생각 좀 했냐, 음?",
                 "기다리다 지루해서 다 터뜨려버릴 뻔했다. 빨리 네 얘기나 해봐라, 음.",
@@ -259,13 +250,21 @@
                 "바보같이 혼자 땅 파고 있지 말고 말해라. 짜증 나니까, 음."
             ];
             const welcomeEl = document.getElementById('welcome-message');
-            if(welcomeEl) {
+            const welcomeContainer = document.getElementById('welcome-message-container');
+            if(welcomeEl && welcomeContainer) {
                 welcomeEl.innerText = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-                window.initialWelcomeHtml = document.getElementById('welcome-message-container').outerHTML;
+                window.initialWelcomeHtml = welcomeContainer.outerHTML;
             }
             window.updateIconsSafely();
+        }
 
-            // 엔터키 전송 연결
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initWelcomeMessage);
+        } else {
+            initWelcomeMessage();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input, textarea').forEach(el => {
                 el.addEventListener('keypress', function (e) {
                     if (e.key === 'Enter' && !e.shiftKey) {
@@ -275,14 +274,14 @@
                 });
             });
 
-            // 통신 테스트 버튼 연결
+            // [추가] 통신 테스트 기능 (모바일 방화벽 체크)
             const btnTestApi = document.getElementById('btn-test-api');
             if(btnTestApi) {
                 btnTestApi.addEventListener('click', async () => {
                     const key = document.getElementById('settings-api-key').value.trim();
                     const model = document.getElementById('settings-ai-model').value;
                     if(key.length < 30) {
-                        alert("키가 너무 짧습니다! 끝까지 전체 복사되었는지 확인해주세요.");
+                        alert("키가 너무 짧습니다! 복사가 덜 되었는지 확인해주세요.");
                         return;
                     }
                     btnTestApi.innerText = "확인 중...";
@@ -293,19 +292,18 @@
                             body: JSON.stringify({contents:[{parts:[{text:"hi"}]}]})
                         });
                         if(res.ok) {
-                            alert("✅ 연결 성공! 폰에서도 API가 정상 작동합니다. 옆에 [설정 저장] 버튼을 꼭 눌러주세요!");
+                            alert("✅ 연결 성공! 폰에서도 API가 완벽하게 작동합니다. 옆에 [설정 저장] 버튼을 꼭 눌러주세요!");
                         } else {
                             const err = await res.json();
-                            alert(`❌ 연결 실패 (키 오류 의심)\n이유: ${err.error?.message}\n\n💡 복사 과정에서 띄어쓰기나 오타가 들어갔을 수 있습니다. 다시 복사해서 붙여넣어 보세요.`);
+                            alert(`❌ 연결 실패 (키 오류 의심)\n이유: ${err.error?.message}\n\n💡 복사 중 띄어쓰기가 들어갔는지 확인해 보세요!`);
                         }
                     } catch(e) {
-                        alert(`❌ 연결 실패 (네트워크 차단)\n이유: ${e.message}\n\n💡 폰에 설치된 '광고 차단 앱(AdGuard 등)'이나, 브라우저의 '보안/추적 방지 기능'이 통신을 막고 있습니다. 해당 기능을 잠시 끄고 시도해 주세요!`);
+                        alert(`❌ 연결 실패 (네트워크 차단됨!)\n이유: ${e.message}\n\n💡 폰에 설치된 '광고 차단 앱(AdGuard 등)'이나 '유니콘 HTTPS', '사파리 보안 설정'이 구글 AI와의 통신을 강제로 막고 있습니다. 잠시 끄고 새로고침 해주세요!`);
                     }
                     btnTestApi.innerText = "통신 테스트";
                 });
             }
 
-            // 설정 저장 버튼 연결
             const btnSaveKey = document.getElementById('btn-save-settings-key');
             if(btnSaveKey) {
                 btnSaveKey.addEventListener('click', () => {
@@ -333,22 +331,22 @@
             }
         });
 
-        // =========================================================================
-        // [🛠️ 탭 별 채팅 분리 및 렌더링 함수 🛠️]
-        // =========================================================================
+        // 탭 별로 완벽하게 대화창을 분리해주는 핵심 함수
         window.updateChatUI = function() {
             const chatContainer = document.getElementById('chat-container');
             if(!chatContainer) return;
 
-            // 로딩 아이콘 보존
             const loadingEl = document.querySelector('div[id^="loading-"]');
             const loadingHtml = loadingEl ? loadingEl.outerHTML : '';
 
-            // 채팅방 초기화 (환영 메시지만 남김)
-            chatContainer.innerHTML = window.initialWelcomeHtml || '';
+            // 채팅방을 싹 비우고, 환영 메시지만 다시 넣습니다.
+            chatContainer.innerHTML = '';
+            if (window.initialWelcomeHtml) {
+                chatContainer.insertAdjacentHTML('beforeend', window.initialWelcomeHtml);
+            }
             window.renderedMsgIds.clear();
 
-            // '현재 탭'에 해당하는 메시지만 필터링 (옛날 메시지는 기본 'vent' 탭으로 분류)
+            // '현재 열려있는 탭'의 메시지만 쏙쏙 골라냅니다.
             const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab);
             
             tabMsgs.forEach(msg => {
@@ -360,12 +358,11 @@
                 }
             });
 
-            // 로딩이 돌고 있었다면 다시 붙여주기
             if (loadingHtml) chatContainer.insertAdjacentHTML('beforeend', loadingHtml);
 
             scrollToBottom();
 
-            // 현재 탭의 마지막 데이다라 감정으로 스탠딩 업데이트
+            // 현재 탭의 마지막 감정에 맞춰 스탠딩 표정 업데이트
             const lastDeidara = [...tabMsgs].reverse().find(m => m.role === 'deidara');
             if (lastDeidara && lastDeidara.emotion) {
                 updateStandingImage(lastDeidara.emotion);
@@ -410,13 +407,10 @@
             document.getElementById(`form-${tab}`).classList.remove('hidden');
             document.getElementById(`form-${tab}`).classList.add('block');
             
-            // 탭 변경 시 채팅방 다시 그리기!
+            // 탭을 바꿀 때마다 대화방을 완벽하게 재구성합니다.
             window.updateChatUI();
         };
 
-        // =========================================================================
-        // [🔥 Firebase 안전 연동 🔥]
-        // =========================================================================
         let app, auth, db, provider;
         try {
             app = initializeApp(firebaseConfig);
@@ -605,22 +599,21 @@
             try {
                 const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
                 onSnapshot(chatsRef, (snapshot) => {
-                    window.allMessages = []; // 모든 기록 저장
+                    window.allMessages = [];
                     snapshot.forEach(doc => window.allMessages.push({ id: doc.id, ...doc.data() }));
                     window.allMessages.sort((a, b) => a.timestamp - b.timestamp);
-                    window.updateChatUI(); // 탭에 맞춰서 그림
+                    window.updateChatUI();
                 }, (error) => console.error("Firestore Error:", error));
             } catch(e) {}
         }
 
-        async function saveMessage(role, text, isReframe = false, reframeGood = '', emotion = 'default') {
-            const currentTab = window.currentTab;
+        // 대화를 저장할 때 '어떤 탭에서 보낸 대화인지'를 완벽하게 고정합니다.
+        async function saveMessage(role, text, isReframe = false, reframeGood = '', emotion = 'default', targetTab = 'vent') {
             if (db && window.currentUser) {
                 const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
-                await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, tab: currentTab, timestamp: Date.now() });
+                await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now() });
             } else {
-                // 오프라인 상태일 때 강제 주입
-                window.allMessages.push({ id: 'off-'+Date.now()+Math.random(), role, text, isReframe, reframeGood, emotion, tab: currentTab, timestamp: Date.now() });
+                window.allMessages.push({ id: 'off-'+Date.now()+Math.random(), role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now() });
                 window.updateChatUI();
             }
         }
@@ -637,7 +630,7 @@
 - 절대 규칙: 자신의 예술(폭발)을 깎아내리는 발언에는 절대 순응하지 않고 화를 내거나 강하게 반발함.
 - 말투: 건방지고 자신감 넘치는 반말. "어이", "네 녀석", "바보냐" 같은 호칭 사용.
 - 어미 '음(うん)' 규칙: 모든 문장에 로봇처럼 '음'을 붙이는 것을 절대 금지함. 대답 전체에서 가장 마지막 문장이나, 특별히 강조할 때만 가끔씩(1회 정도) 자연스럽게 붙일 것.
-- 금지: '흥'이라는 추임새를 너무 남발하지 말 일. 오글거리는 연애 멘트 금지.
+- 금지: '흥'이라는 추임새를 너무 남발하지 말 것. 오글거리는 연애 멘트 금지.
 
 [사용자(연지) 정보 및 관계]
 - 사용자: 연지 (불안장애, 우울증, 완벽주의, 비교로 인한 무기력증을 겪음)
@@ -702,7 +695,7 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
                 } catch (error) {
                     console.error("Gemini API Error:", error);
                     if (i === delays.length - 1) {
-                        alert(`🚨 API 통신 오류 발생!\n\n오류 내용: ${error.message}\n\n💡 [안내] PC와 폰은 설정이 따로 저장됩니다! 폰의 환경 설정(톱니바퀴)에서 API 키를 정확히 입력하셨는지 다시 한번 확인해 주세요!`);
+                        alert(`🚨 API 통신 오류 발생!\n\n오류 내용: ${error.message}\n\n💡 [중요] 아이폰 사파리의 '추적 방지' 기능이나, 폰에 설치된 '광고 차단 앱(AdGuard 등)', 유니콘 HTTPS 같은 우회 앱이 구글 서버 통신을 막고 있을 확률이 99%입니다! 잠시 끄고 탭을 새로고침해 보세요.`);
                         return null;
                     }
                     await new Promise(r => setTimeout(r, delays[i]));
@@ -732,35 +725,36 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
             const btn = document.getElementById('submit-btn');
             let userText = "", logText = "", reframeGood = "";
 
-            const currentTab = window.currentTab;
+            // 전송 버튼을 누른 순간의 탭을 기억해 둡니다. (이게 핵심!)
+            const activeTabWhenSubmitted = window.currentTab;
 
-            if (currentTab === 'vent') {
+            if (activeTabWhenSubmitted === 'vent') {
                 const input = document.getElementById('input-vent');
                 if (!input.value.trim()) return;
                 userText = input.value; logText = input.value;
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'reframe') {
+                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+            } else if (activeTabWhenSubmitted === 'reframe') {
                 const inputBad = document.getElementById('input-reframe-bad');
                 const inputGood = document.getElementById('input-reframe-good');
                 if (!inputBad.value.trim() || !inputGood.value.trim()) return;
                 userText = `부정적 생각: ${inputBad.value} -> 관대한 생각: ${inputGood.value}`;
                 logText = inputBad.value; reframeGood = inputGood.value;
-                inputBad.value = inputGood.value = ''; await saveMessage('user', logText, true, reframeGood);
-            } else if (currentTab === 'smallwin') {
+                inputBad.value = inputGood.value = ''; await saveMessage('user', logText, true, reframeGood, 'default', activeTabWhenSubmitted);
+            } else if (activeTabWhenSubmitted === 'smallwin') {
                 const input = document.getElementById('input-smallwin');
                 if (!input.value.trim()) return;
                 userText = `오늘 해낸 일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'motivate') {
+                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+            } else if (activeTabWhenSubmitted === 'motivate') {
                 const input = document.getElementById('input-motivate');
                 if (!input.value.trim()) return;
                 userText = `도피하고 있는 과제/일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
-            } else if (currentTab === 'breakdown') {
+                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+            } else if (activeTabWhenSubmitted === 'breakdown') {
                 const input = document.getElementById('input-breakdown');
                 if (!input.value.trim()) return;
                 userText = `막막한 큰 목표: ${input.value} (목표 쪼개기 요청)`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText);
+                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             }
 
             if(btn) {
@@ -769,7 +763,7 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
             }
             const loadingId = showLoading();
 
-            const aiResponse = await callGeminiAPI(userText, currentTab);
+            const aiResponse = await callGeminiAPI(userText, activeTabWhenSubmitted);
 
             removeLoading(loadingId);
             if(btn) {
@@ -779,9 +773,10 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
 
             if (aiResponse && aiResponse.deidara) {
                 const emotion = aiResponse.emotion || "default";
-                await saveMessage('deidara', aiResponse.deidara, false, '', emotion);
+                // 데이다라의 답변도 질문을 던졌던 그 방(activeTabWhenSubmitted)에 정확히 저장합니다!
+                await saveMessage('deidara', aiResponse.deidara, false, '', emotion, activeTabWhenSubmitted);
             } else {
-                await saveMessage('deidara', "통신 장치가 터져버렸잖아! 폰 설정(톱니바퀴)에서 API 키를 정확히 넣었는지 확인해라, 음!", false, '', 'angry');
+                await saveMessage('deidara', "통신 장치가 터져버렸잖아! 폰 설정(톱니바퀴)에서 API 키가 올바른지 확인하거나, 광고 차단 앱을 꺼봐라, 음!", false, '', 'angry', activeTabWhenSubmitted);
             }
         };
     </script>
