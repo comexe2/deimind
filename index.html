@@ -815,6 +815,44 @@
             }
         };
 
+        // 🗑️ 보관함 전체 삭제 기능
+        window.deleteAllArchived = async function() {
+            const filterTab = document.getElementById('archive-tab-select').value;
+            let msgsToDelete = window.allMessages.filter(m => m.isArchived);
+            if (filterTab !== 'all') msgsToDelete = msgsToDelete.filter(m => (m.tab || 'vent') === filterTab);
+            
+            if (msgsToDelete.length === 0) {
+                alert("비울 대화가 없다, 음!");
+                return;
+            }
+            
+            const confirmMsg = filterTab === 'all' ? 
+                "보관함에 있는 모든 대화를 흔적도 없이 터뜨려버릴 거냐, 음?\n(복구할 수 없다!)" : 
+                `보관함의 현재 선택된 주제 대화를 전부 터뜨릴 거냐, 음?\n(복구 불가)`;
+                
+            if (!confirm(confirmMsg)) return;
+
+            // 전체 삭제 버튼 로딩 처리 대신 바로 UI상으로 지우기 시작
+            if (db && window.currentUser) {
+                try {
+                    for (const m of msgsToDelete) {
+                        if (!m.id.startsWith('off-')) {
+                            await deleteDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', m.id));
+                        }
+                    }
+                    alert("전부 깔끔하게 날려버렸다, 음!");
+                } catch(e) { 
+                    console.error("Delete All Archived Error: ", e); 
+                    alert("지우는 중에 에러가 났다, 음!"); 
+                }
+            } else {
+                const idsToDelete = msgsToDelete.map(m => m.id);
+                window.allMessages = window.allMessages.filter(m => !idsToDelete.includes(m.id));
+                window.renderArchive();
+                alert("전부 깔끔하게 날려버렸다, 음! (오프라인 모드)");
+            }
+        };
+
         // ✏️ 연지 메시지 실제 저장 (DB 연동)
         window.saveEdit = async function() {
             const newTextRaw = document.getElementById('edit-textarea').value.trim();
