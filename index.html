@@ -456,10 +456,12 @@
             favMsgs.forEach(msg => {
                 const dateString = new Date(msg.timestamp).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
                 let html = `<div class="bg-zinc-900/60 border border-pink-900/30 p-4 rounded-2xl relative shadow-sm">
-                                <button onclick="window.toggleFavorite('${msg.id}')" class="absolute top-3 right-3 text-pink-500 outline-none hover:scale-110 transition-transform">
-                                    <i data-lucide="heart" class="w-4 h-4 fill-pink-500"></i>
-                                </button>
-                                <div class="text-[10px] text-zinc-500 mb-2">${dateString}</div>
+                                <div class="flex justify-between items-start mb-2.5">
+                                    <div class="text-[10px] text-zinc-500">${dateString}</div>
+                                    <button onclick="window.toggleFavorite('${msg.id}')" class="text-pink-500 outline-none hover:scale-110 transition-transform">
+                                        <i data-lucide="heart" class="w-4 h-4 fill-pink-500"></i>
+                                    </button>
+                                </div>
                                 <div class="text-[14px] text-zinc-100 leading-relaxed font-medium">${window.formatChatText(msg.text)}</div>`;
                 if (msg.isReframe && msg.reframeGood) {
                     html += `<div class="mt-3 pt-3 border-t border-zinc-800 text-[13px] text-yellow-500/90 font-bold leading-relaxed"><i data-lucide="sparkles" class="inline w-3.5 h-3.5 mr-1 mb-0.5"></i>데이다라가 제안하는 생각:<br><span class="text-yellow-400 font-medium">${msg.reframeGood}</span></div>`;
@@ -616,14 +618,16 @@
             let innerHtml = `
                 <img src="${DEIDARA_PROFILE_URL}" alt="프사" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 border border-zinc-700 shadow-sm mt-0.5">
                 <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[82%] relative w-full">
-                    <span class="text-[11px] font-bold text-red-500 ml-1 tracking-wider">데이다라</span>
-                    <div class="bg-zinc-900 border border-zinc-800 shadow-md text-zinc-100 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm text-[14px] sm:text-[15px] leading-relaxed tracking-wide font-medium break-words pr-8 relative">
-                        
-                        <!-- 찜하기 하트 버튼 -->
-                        ${id ? `<button onclick="window.toggleFavorite('${id}')" class="absolute top-3.5 right-3 text-zinc-600 hover:text-pink-500 hover:scale-110 transition-all outline-none">
-                            <i data-lucide="heart" class="w-4 h-4 ${isFavorite ? 'text-pink-500 fill-pink-500' : ''}"></i>
+                    
+                    <!-- 이름 및 하트 버튼 영역 (말풍선 밖으로 분리) -->
+                    <div class="flex justify-between items-center w-full pl-1 pr-2 mb-0.5">
+                        <span class="text-[11px] font-bold text-red-500 tracking-wider">데이다라</span>
+                        ${id ? `<button onclick="window.toggleFavorite('${id}')" class="text-zinc-600 hover:text-pink-500 hover:scale-110 transition-all outline-none flex items-center">
+                            <i data-lucide="heart" class="w-3.5 h-3.5 ${isFavorite ? 'text-pink-500 fill-pink-500' : ''}"></i>
                         </button>` : ''}
+                    </div>
 
+                    <div class="bg-zinc-900 border border-zinc-800 shadow-md text-zinc-100 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm text-[14px] sm:text-[15px] leading-relaxed tracking-wide font-medium break-words">
                         ${formattedText}
             `;
             
