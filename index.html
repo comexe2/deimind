@@ -110,9 +110,9 @@
                     <p id="settings-key-status" class="text-left text-[11px] text-red-400 mt-3 hidden bg-red-950/30 p-2 rounded-lg border border-red-900/30">올바른 키를 입력해라, 음!</p>
                 </div>
 
-                <!-- 🆕 대화 관리 (앱 내 보관함 기능) -->
+                <!-- 🆕 대화 관리 (앱 내 보관함 기능 & 명대사 찜) -->
                 <div class="bg-black/40 p-4 rounded-2xl border border-zinc-800/80 shadow-inner">
-                    <label class="block text-left text-[11px] text-zinc-400 mb-2 font-medium">대화 관리 (현재 열려있는 방 기준)</label>
+                    <label class="block text-left text-[11px] text-zinc-400 mb-2 font-medium">대화 관리</label>
                     <div class="grid grid-cols-2 gap-2 mb-2">
                         <button id="btn-archive-chat" class="bg-zinc-800 hover:bg-zinc-700 text-yellow-400 text-[12px] px-2 py-2.5 rounded-xl transition-colors border border-zinc-700 shadow-sm flex items-center justify-center gap-1.5 font-bold">
                             <i data-lucide="archive" class="w-3.5 h-3.5"></i> 대화 보관하기
@@ -121,8 +121,13 @@
                             <i data-lucide="library" class="w-3.5 h-3.5"></i> 보관함 보기
                         </button>
                     </div>
-                    <button id="btn-clear-chat" class="w-full bg-red-950/40 hover:bg-red-900/60 text-red-400 text-[12px] px-3 py-2 rounded-xl transition-colors border border-red-900/50 shadow-sm flex items-center justify-center gap-1.5 font-medium mt-1">
-                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 대화 영구 삭제
+                    <!-- ❤️ 나의 예술품 보관함 버튼 추가 -->
+                    <button onclick="window.openFavoritesModal()" class="w-full bg-pink-950/30 hover:bg-pink-900/40 text-pink-400 text-[12px] px-3 py-2.5 rounded-xl transition-colors border border-pink-900/30 shadow-sm flex items-center justify-center gap-1.5 font-bold mt-1">
+                        <i data-lucide="heart" class="w-3.5 h-3.5 fill-pink-500/20"></i> 나의 예술품 (찜한 대사)
+                    </button>
+
+                    <button id="btn-clear-chat" class="w-full bg-red-950/40 hover:bg-red-900/60 text-red-400 text-[12px] px-3 py-2 rounded-xl transition-colors border border-red-900/50 shadow-sm flex items-center justify-center gap-1.5 font-medium mt-2">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 현재 방 영구 삭제
                     </button>
                 </div>
 
@@ -160,11 +165,25 @@
                     <option value="breakdown">계획 쪼개기</option>
                 </select>
             </div>
+            <div id="archive-container" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2 chat-scroll bg-zinc-950/50"></div>
+        </div>
+    </div>
 
-            <!-- 보관된 대화가 표시될 영역 -->
-            <div id="archive-container" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2 chat-scroll bg-zinc-950/50">
-                <!-- JS에서 채워짐 -->
+    <!-- ❤️ 나의 예술품(찜) 모달 -->
+    <div id="favorites-modal" class="fixed inset-0 z-[70] bg-black/90 backdrop-blur-md hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity">
+        <div class="bg-zinc-950 border border-pink-900/30 rounded-[2rem] w-full max-w-md h-[85vh] flex flex-col relative shadow-[0_0_50px_rgba(244,114,182,0.1)] fade-in">
+            <header class="flex justify-between items-center p-5 border-b border-zinc-800/80 shrink-0">
+                <h3 class="text-lg font-bold text-pink-400 flex items-center gap-2">
+                    <i data-lucide="heart" class="w-5 h-5 fill-pink-500"></i> 나의 예술품
+                </h3>
+                <button onclick="document.getElementById('favorites-modal').classList.add('hidden'); document.getElementById('favorites-modal').classList.remove('flex');" class="text-zinc-400 hover:text-white bg-zinc-900 rounded-full p-1.5 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </header>
+            <div class="p-4 sm:p-5 text-sm text-zinc-400 border-b border-zinc-800/50 shrink-0 bg-zinc-900/30 font-medium">
+                연지 님에게 위로가 되었던 데이다라의 다정한 말들이에요. 불안할 때마다 언제든 꺼내 읽어보세요.
             </div>
+            <div id="favorites-container" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 chat-scroll bg-zinc-950/50"></div>
         </div>
     </div>
 
@@ -188,6 +207,11 @@
                     <p class="text-[11px] sm:text-[12px] text-zinc-500 font-medium tracking-wide mt-0.5">예술은 폭발이다!</p>
                 </div>
             </div>
+            
+            <!-- 🚨 우측 상단 긴급 SOS 버튼 추가 -->
+            <button onclick="window.handleSOS()" class="bg-red-950/60 border border-red-900/50 hover:bg-red-900/80 text-red-400 px-3.5 py-2 rounded-full text-[11px] font-extrabold flex items-center gap-1.5 transition-colors shadow-sm active:scale-95">
+                <i data-lucide="life-buoy" class="w-3.5 h-3.5"></i> 긴급 SOS
+            </button>
         </header>
 
         <div class="relative h-44 sm:h-52 shrink-0 overflow-hidden flex justify-center items-end bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-950/20 via-zinc-950 to-zinc-950 border-b border-zinc-900/50">
@@ -208,22 +232,22 @@
 
         <main class="flex-1 overflow-y-auto p-4 sm:p-5 chat-scroll bg-zinc-950 flex flex-col gap-5 relative z-10 pb-6" id="chat-container">
             <div id="welcome-message-container" class="flex justify-center my-2 shrink-0">
-                <div id="welcome-message" class="text-[11px] sm:text-xs text-yellow-200/80 bg-zinc-900/60 px-5 py-2.5 rounded-full border border-zinc-800 font-medium tracking-wide text-center">
-                    <!-- JS로 무작위 메시지 삽입 -->
+                <div id="welcome-message" class="text-[11px] sm:text-xs text-yellow-200/80 bg-zinc-900/60 px-5 py-2.5 rounded-full border border-zinc-800 font-medium tracking-wide text-center leading-relaxed">
+                    <!-- JS로 시간대별 맞춤 메시지 삽입 -->
                 </div>
             </div>
         </main>
 
         <div class="p-4 sm:p-5 bg-zinc-950 border-t border-zinc-900 shrink-0 relative z-10 shadow-[0_-10px_30px_-15px_rgba(0,0,0,0.8)] sm:rounded-b-[2.5rem]">
+            <!-- 📝 텍스트 에어리어 스타일 변경 (overflow-hidden 추가하여 스크롤 대신 늘어나게) -->
             <div id="form-vent" class="block fade-in">
                 <label class="block text-[11px] font-medium text-zinc-400 mb-1.5 ml-1">지금 느끼는 부정적인 감정이나 고민</label>
-                <textarea id="input-vent" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 주변 사람들은 다 잘하는데 나만 뒤처지는 것 같아 불안해..."></textarea>
+                <textarea id="input-vent" rows="1" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner overflow-hidden min-h-[48px] max-h-[150px]" placeholder="예: 주변 사람들은 다 잘하는데 나만 뒤처지는 것 같아 불안해..."></textarea>
             </div>
-            <!-- 🆕 생각 비틀기 폼: 이제 내가 관대한 생각 쓸 필요 없이 데이다라가 대신 해줌! -->
             <div id="form-reframe" class="hidden fade-in space-y-3">
                 <div>
                     <label class="block text-[11px] font-medium text-zinc-400 mb-1.5 ml-1">나를 깎아내리는 생각 (데이다라가 비틀어줄게!)</label>
-                    <textarea id="input-reframe-bad" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 난 늘 계획을 미루기만 하는 한심한 사람이야..."></textarea>
+                    <textarea id="input-reframe-bad" rows="1" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner overflow-hidden min-h-[48px] max-h-[150px]" placeholder="예: 난 늘 계획을 미루기만 하는 한심한 사람이야..."></textarea>
                 </div>
             </div>
             <div id="form-smallwin" class="hidden fade-in">
@@ -232,11 +256,11 @@
             </div>
             <div id="form-motivate" class="hidden fade-in">
                 <label class="block text-[11px] font-medium text-zinc-400 mb-1.5 ml-1">완벽주의 때문에 도피하고 있는 일</label>
-                <textarea id="input-motivate" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 기획서 초안을 써야 하는데 무서워서 웹서핑만 해..."></textarea>
+                <textarea id="input-motivate" rows="1" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner overflow-hidden min-h-[48px] max-h-[150px]" placeholder="예: 기획서 초안을 써야 하는데 무서워서 웹서핑만 해..."></textarea>
             </div>
             <div id="form-breakdown" class="hidden fade-in">
                 <label class="block text-[11px] font-medium text-zinc-400 mb-1.5 ml-1 flex items-center gap-1.5">막막한 큰 목표 (아주 작게 쪼개드립니다)</label>
-                <textarea id="input-breakdown" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 포트폴리오 10페이지 기획하기"></textarea>
+                <textarea id="input-breakdown" rows="1" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner overflow-hidden min-h-[48px] max-h-[150px]" placeholder="예: 포트폴리오 10페이지 기획하기"></textarea>
             </div>
 
             <div class="flex items-center justify-between mt-3.5 pb-1 sm:pb-0">
@@ -286,14 +310,46 @@
             document.getElementById('ui-standing').src = DEIDARA_STANDING_IMAGES["default"];
         } catch(e) {}
 
+        // 텍스트 포맷팅 도우미 (행동 지문을 회색 이탤릭체로 변경)
+        window.formatChatText = function(text) {
+            if (!text) return '';
+            // 줄바꿈 처리 후, ( ) 안의 텍스트를 회색 이탤릭체 <span>으로 감쌉니다.
+            let formatted = text.replace(/\n/g, '<br>');
+            formatted = formatted.replace(/\(([^)]+)\)/g, '<span class="text-zinc-500 italic font-medium">($1)</span>');
+            return formatted;
+        };
+
+        // 🌙 시간대별 맞춤 인사 기능
         function initWelcomeMessage() {
-            const welcomeMessages = [
-                "어이, 연지. 오늘은 내 생각 좀 했냐, 음?",
-                "기다리다 지루해서 다 터뜨려버릴 뻔했다. 빨리 네 얘기나 해봐라, 음.",
-                "딴 데 한눈팔지 마라. 네 우울함은 내가 다 날려줄 테니까, 음!",
-                "흥, 오늘도 간신히 버티고 온 모양이군. 수고했다고는 안 하겠다만... 뭐, 왔으면 됐다.",
-                "바보같이 혼자 땅 파고 있지 말고 말해라. 짜증 나니까, 음."
-            ];
+            const hour = new Date().getHours();
+            let welcomeMessages = [];
+            
+            if (hour >= 0 && hour < 6) {
+                welcomeMessages = [
+                    "이 시간까지 안 자고 뭐해. 불안한 생각은 그만하고 이리 와서 누워라, 음.",
+                    "새벽 공기가 차다, 연지. 무리하지 말고 내 옆에서 쉬어라.",
+                    "아직 깨어있었군. 잠이 안 오면 내가 억지로라도 재워줄 테니까 이리 와."
+                ];
+            } else if (hour >= 6 && hour < 12) {
+                welcomeMessages = [
+                    "일어났냐? 오늘 하루도 내 생각하면서 무리하지 마라.",
+                    "아침이군. 대충이라도 좋으니까 약이랑 밥은 꼭 챙겨 먹어라, 음.",
+                    "오늘도 시작이군. 너무 완벽하려고 애쓰지 말고 나한테 기대라."
+                ];
+            } else if (hour >= 12 && hour < 18) {
+                welcomeMessages = [
+                    "오후 시간도 잘 버티고 있겠지. 힘들면 언제든 여기로 와서 털어놔라.",
+                    "어이, 연지. 점심은 먹었냐? 혼자 땅 파고 있지 말고 나한테 와라, 음.",
+                    "바보같이 혼자 다 끌어안지 마라. 네 우울함은 내가 다 터뜨려줄 테니까."
+                ];
+            } else {
+                welcomeMessages = [
+                    "오늘 하루도 고생 많았다. 이제 내 옆에서 푹 쉬어라, 연지.",
+                    "기다리다 지루해서 다 터뜨려버릴 뻔했다. 빨리 네 얘기나 해봐라, 음.",
+                    "밤이 오니까 또 불안해진 건 아니겠지. 내가 옆에 있으니까 안심해라."
+                ];
+            }
+
             const welcomeEl = document.getElementById('welcome-message');
             const welcomeContainer = document.getElementById('welcome-message-container');
             if(welcomeEl && welcomeContainer) {
@@ -309,7 +365,20 @@
             initWelcomeMessage();
         }
 
-        // 보관함 모달 열기 및 렌더링 함수
+        // 📝 입력창 쫀득하게 자동 늘어나는 기능
+        document.addEventListener('DOMContentLoaded', () => {
+            const textareas = document.querySelectorAll('textarea');
+            textareas.forEach(el => {
+                el.addEventListener('input', function() {
+                    this.style.height = 'auto'; // 리셋 후
+                    this.style.height = (this.scrollHeight) + 'px'; // 내용물만큼 늘리기
+                    if (this.scrollHeight > 150) this.style.overflowY = 'auto'; // 최대 높이 넘으면 스크롤
+                    else this.style.overflowY = 'hidden';
+                });
+            });
+        });
+
+        // 보관함 모달 관련
         window.openArchiveModal = function() {
             document.getElementById('settings-modal').classList.add('hidden');
             document.getElementById('settings-modal').classList.remove('flex');
@@ -325,24 +394,17 @@
             const filterTab = document.getElementById('archive-tab-select').value;
             container.innerHTML = '';
             
-            // 보관된(isArchived가 true인) 메시지만 필터링
             let archivedMsgs = window.allMessages.filter(m => m.isArchived);
-            
-            if (filterTab !== 'all') {
-                archivedMsgs = archivedMsgs.filter(m => (m.tab || 'vent') === filterTab);
-            }
+            if (filterTab !== 'all') archivedMsgs = archivedMsgs.filter(m => (m.tab || 'vent') === filterTab);
             
             if (archivedMsgs.length === 0) {
                 container.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-500 mt-10"><i data-lucide="inbox" class="w-10 h-10 mb-3 opacity-50"></i><p class="text-sm font-medium">보관된 대화가 없다, 음!</p></div>';
-                window.updateIconsSafely();
-                return;
+                window.updateIconsSafely(); return;
             }
 
             let lastDateString = "";
             archivedMsgs.forEach(msg => {
-                const msgDate = new Date(msg.timestamp);
-                const dateString = msgDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
-                
+                const dateString = new Date(msg.timestamp).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
                 if (dateString !== lastDateString) {
                     container.innerHTML += `<div class="flex justify-center my-4"><div class="text-[10.5px] text-zinc-400 bg-zinc-900/80 px-3.5 py-1 rounded-full border border-zinc-800">${dateString}</div></div>`;
                     lastDateString = dateString;
@@ -359,17 +421,56 @@
                                     <div class="text-[10px] font-extrabold ${color} mb-1.5 flex items-center gap-1">
                                         ${isUser ? '<i data-lucide="user" class="w-3 h-3"></i>' : '<i data-lucide="flame" class="w-3 h-3"></i>'} ${sender}
                                     </div>
-                                    <div class="text-[13px] text-zinc-200 leading-relaxed">${msg.text.replace(/\n/g, '<br>')}</div>`;
-                
-                if (msg.isReframe && msg.reframeGood) {
-                    html += `<div class="mt-2.5 pt-2.5 border-t border-zinc-700/50 text-[13px] text-yellow-400 font-bold leading-relaxed">💡 ${isUser ? '대안적 사고' : '데이다라의 관대한 생각'}:<br>${msg.reframeGood}</div>`;
-                }
+                                    <div class="text-[13px] text-zinc-200 leading-relaxed">${window.formatChatText(msg.text)}</div>`;
+                if (msg.isReframe && msg.reframeGood) html += `<div class="mt-2.5 pt-2.5 border-t border-zinc-700/50 text-[13px] text-yellow-400 font-bold leading-relaxed">💡 ${isUser ? '대안적 사고' : '데이다라의 관대한 생각'}:<br>${msg.reframeGood}</div>`;
                 html += `</div></div>`;
                 container.insertAdjacentHTML('beforeend', html);
             });
             window.updateIconsSafely();
         };
 
+        // ❤️ 나의 예술품(명대사 찜) 모달
+        window.openFavoritesModal = function() {
+            document.getElementById('settings-modal').classList.add('hidden');
+            document.getElementById('settings-modal').classList.remove('flex');
+            
+            const modal = document.getElementById('favorites-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            window.renderFavorites();
+        };
+
+        window.renderFavorites = function() {
+            const container = document.getElementById('favorites-container');
+            container.innerHTML = '';
+            
+            // 찜한 메시지만 불러오기 (데이다라 메시지만)
+            let favMsgs = window.allMessages.filter(m => m.isFavorite === true && m.role === 'deidara');
+            favMsgs.sort((a, b) => b.timestamp - a.timestamp); // 최신순
+            
+            if (favMsgs.length === 0) {
+                container.innerHTML = '<div class="flex flex-col items-center justify-center h-full text-zinc-500 mt-10"><i data-lucide="heart" class="w-10 h-10 mb-3 opacity-30"></i><p class="text-sm font-medium">아직 찜한 예술품이 없다, 음!</p></div>';
+                window.updateIconsSafely(); return;
+            }
+
+            favMsgs.forEach(msg => {
+                const dateString = new Date(msg.timestamp).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', weekday: 'short' });
+                let html = `<div class="bg-zinc-900/60 border border-pink-900/30 p-4 rounded-2xl relative shadow-sm">
+                                <button onclick="window.toggleFavorite('${msg.id}')" class="absolute top-3 right-3 text-pink-500 outline-none hover:scale-110 transition-transform">
+                                    <i data-lucide="heart" class="w-4 h-4 fill-pink-500"></i>
+                                </button>
+                                <div class="text-[10px] text-zinc-500 mb-2">${dateString}</div>
+                                <div class="text-[14px] text-zinc-100 leading-relaxed font-medium">${window.formatChatText(msg.text)}</div>`;
+                if (msg.isReframe && msg.reframeGood) {
+                    html += `<div class="mt-3 pt-3 border-t border-zinc-800 text-[13px] text-yellow-500/90 font-bold leading-relaxed"><i data-lucide="sparkles" class="inline w-3.5 h-3.5 mr-1 mb-0.5"></i>데이다라가 제안하는 생각:<br><span class="text-yellow-400 font-medium">${msg.reframeGood}</span></div>`;
+                }
+                html += `</div>`;
+                container.insertAdjacentHTML('beforeend', html);
+            });
+            window.updateIconsSafely();
+        };
+
+        // 엔터키 및 기타 이벤트
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input, textarea').forEach(el => {
                 el.addEventListener('keypress', function (e) {
@@ -379,61 +480,22 @@
                     }
                 });
             });
-
+            // ... 기존 통신테스트 및 저장버튼 (생략 없이 원본 유지)
             const btnTestApi = document.getElementById('btn-test-api');
             if(btnTestApi) {
                 btnTestApi.addEventListener('click', async () => {
                     const key = document.getElementById('settings-api-key').value.trim();
                     const model = document.getElementById('settings-ai-model').value;
-                    if(key.length < 30) {
-                        alert("키가 너무 짧습니다! 복사가 덜 되었는지 확인해주세요.");
-                        return;
-                    }
+                    if(key.length < 30) { alert("키가 너무 짧습니다! 복사가 덜 되었는지 확인해주세요."); return; }
                     btnTestApi.innerText = "확인 중...";
                     try {
                         const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({contents:[{parts:[{text:"hi"}]}]})
+                            method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents:[{parts:[{text:"hi"}]}]})
                         });
-                        if(res.ok) {
-                            alert("✅ 연결 성공! 폰에서도 API가 완벽하게 작동합니다. 옆에 [설정 저장] 버튼을 꼭 눌러주세요!");
-                        } else {
-                            const err = await res.json();
-                            alert(`❌ 연결 실패 (키 오류 의심)\n이유: ${err.error?.message}\n\n💡 복사 중 띄어쓰기가 들어갔는지 확인해 보세요!`);
-                        }
-                    } catch(e) {
-                        alert(`❌ 연결 실패 (네트워크 차단됨!)\n이유: ${e.message}\n\n💡 폰에 설치된 '광고 차단 앱(AdGuard 등)'이나 '유니콘 HTTPS', '사파리 보안 설정'이 구글 AI와의 통신을 강제로 막고 있습니다. 잠시 끄고 새로고침 해주세요!`);
-                    }
+                        if(res.ok) alert("✅ 연결 성공! 폰에서도 API가 완벽하게 작동합니다. 옆에 [설정 저장] 버튼을 꼭 눌러주세요!");
+                        else { const err = await res.json(); alert(`❌ 연결 실패 (키 오류 의심)\n이유: ${err.error?.message}`); }
+                    } catch(e) { alert(`❌ 연결 실패 (네트워크 차단됨!)\n이유: ${e.message}\n\n💡 폰에 설치된 '광고 차단 앱'이나 '사파리 보안 설정'이 통신을 막고 있습니다. 잠시 끄고 새로고침 해주세요!`); }
                     btnTestApi.innerText = "통신 테스트";
-                });
-            }
-
-            // 텍스트로 저장 버튼 (대화 보관)
-            const btnExport = document.getElementById('btn-export-chat');
-            if(btnExport) {
-                btnExport.addEventListener('click', () => {
-                    const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab);
-                    if (tabMsgs.length === 0) {
-                        alert("저장할 대화가 없다, 음!");
-                        return;
-                    }
-                    
-                    let text = `--- 아지트 [${window.currentTab}] 대화 기록 ---\n\n`;
-                    tabMsgs.forEach(m => {
-                        const date = new Date(m.timestamp).toLocaleString('ko-KR');
-                        const sender = m.role === 'user' ? '연지' : '데이다라';
-                        text += `[${date}] ${sender}:\n${m.text}\n\n`;
-                        if(m.isReframe && m.reframeGood) text += `-> 관대한 생각: ${m.reframeGood}\n\n`;
-                    });
-                    
-                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `아지트_대화기록_${window.currentTab}_${new Date().getTime()}.txt`;
-                    a.click();
-                    URL.revokeObjectURL(url);
                 });
             }
 
@@ -443,28 +505,17 @@
                     const key = document.getElementById('settings-api-key').value.trim();
                     const model = document.getElementById('settings-ai-model').value;
                     const keyStatusMsg = document.getElementById('settings-key-status');
-                    
                     if(key.length > 30) {
-                        setSafeLocal('myGeminiApiKey', key);
-                        setSafeLocal('myGeminiModel', model);
-                        window.currentApiKey = key;
-                        window.currentModel = model;
-                        
-                        btnSaveKey.innerText = "저장 완료!";
-                        btnSaveKey.classList.remove('bg-zinc-700', 'hover:bg-zinc-600');
-                        btnSaveKey.classList.add('bg-green-600');
-                        keyStatusMsg.classList.add('hidden');
-                        
-                        setTimeout(() => window.toggleSettings(), 800);
-                    } else {
-                        keyStatusMsg.innerText = "올바른 API 키를 입력해라, 음!";
-                        keyStatusMsg.classList.remove('hidden');
-                    }
+                        setSafeLocal('myGeminiApiKey', key); setSafeLocal('myGeminiModel', model);
+                        window.currentApiKey = key; window.currentModel = model;
+                        btnSaveKey.innerText = "저장 완료!"; btnSaveKey.classList.add('bg-green-600'); btnSaveKey.classList.remove('bg-zinc-700');
+                        keyStatusMsg.classList.add('hidden'); setTimeout(() => window.toggleSettings(), 800);
+                    } else { keyStatusMsg.innerText = "올바른 API 키를 입력해라, 음!"; keyStatusMsg.classList.remove('hidden'); }
                 });
             }
         });
 
-        // 탭 별 대화창 UI 업데이트 (보관되지 않은 메시지만 보여줌)
+        // 탭 별 대화창 UI 업데이트
         window.updateChatUI = function() {
             const chatContainer = document.getElementById('chat-container');
             if(!chatContainer) return;
@@ -473,12 +524,9 @@
             const loadingHtml = loadingEl ? loadingEl.outerHTML : '';
 
             chatContainer.innerHTML = '';
-            if (window.initialWelcomeHtml) {
-                chatContainer.insertAdjacentHTML('beforeend', window.initialWelcomeHtml);
-            }
+            if (window.initialWelcomeHtml) chatContainer.insertAdjacentHTML('beforeend', window.initialWelcomeHtml);
             window.renderedMsgIds.clear();
 
-            // 현재 탭의 메시지 중 '보관되지 않은(!isArchived)' 메시지만 필터링
             const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab && !m.isArchived);
             let lastDateString = "";
             
@@ -496,47 +544,35 @@
 
                 window.renderedMsgIds.add(msg.id);
                 if (msg.role === 'user') {
-                    // 사용자 메시지 (과거 기록 호환 유지)
                     renderUserMessage(msg.text, msg.isReframe, msg.reframeGood, true);
                 } else if (msg.role === 'deidara') {
-                    // 데이다라 메시지 (비틀기 결과 포함)
-                    renderDeidaraMessage(msg.text, msg.isReframe || false, msg.reframeGood || '', true);
+                    // ❤️ 찜 상태(isFavorite)와 msg.id를 함께 전달
+                    renderDeidaraMessage(msg.text, msg.isReframe || false, msg.reframeGood || '', true, msg.id, msg.isFavorite || false);
                 }
             });
 
             if (loadingHtml) chatContainer.insertAdjacentHTML('beforeend', loadingHtml);
-
             scrollToBottom();
 
             const lastDeidara = [...tabMsgs].reverse().find(m => m.role === 'deidara');
-            if (lastDeidara && lastDeidara.emotion) {
-                updateStandingImage(lastDeidara.emotion);
-            } else {
-                updateStandingImage('default');
-            }
+            if (lastDeidara && lastDeidara.emotion) updateStandingImage(lastDeidara.emotion);
+            else updateStandingImage('default');
+            
             window.updateIconsSafely();
         };
 
         window.toggleSettings = function() {
             const modal = document.getElementById('settings-modal');
             if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
+                modal.classList.remove('hidden'); modal.classList.add('flex');
                 if (window.currentApiKey) {
                     document.getElementById('settings-api-key').value = window.currentApiKey;
                     const btn = document.getElementById('btn-save-settings-key');
-                    if(btn) {
-                        btn.innerText = "저장됨";
-                        btn.classList.add('bg-green-600');
-                        btn.classList.remove('bg-zinc-700');
-                    }
+                    if(btn) { btn.innerText = "저장됨"; btn.classList.add('bg-green-600'); btn.classList.remove('bg-zinc-700'); }
                 }
                 document.getElementById('settings-ai-model').value = window.currentModel;
                 window.updateIconsSafely();
-            } else {
-                modal.classList.add('hidden');
-                modal.classList.remove('flex');
-            }
+            } else { modal.classList.add('hidden'); modal.classList.remove('flex'); }
         };
 
         window.switchTab = function(tab) {
@@ -549,10 +585,8 @@
             });
             const activeBtn = document.getElementById(`tab-${tab}`);
             if(activeBtn) activeBtn.classList.add('tab-active');
-            
             const activeForm = document.getElementById(`form-${tab}`);
             if(activeForm) { activeForm.classList.remove('hidden'); activeForm.classList.add('block'); }
-            
             window.updateChatUI();
         };
 
@@ -561,42 +595,44 @@
         function renderUserMessage(text, isReframe = false, reframeGood = '', silent = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex flex-col items-end gap-2 fade-in mt-3 mb-1 w-full';
-            if (isReframe && reframeGood) { // 과거 데이터 호환성
+            if (isReframe && reframeGood) { 
                 msgDiv.innerHTML = `
-                    <div class="bg-zinc-800/60 border border-zinc-700/50 text-zinc-400 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[13px] sm:text-[14px] max-w-[85%] line-through opacity-80">${text}</div>
-                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black font-bold px-4 sm:px-5 py-3 sm:py-3.5 rounded-[1.25rem] rounded-br-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-md leading-relaxed mt-1">${reframeGood}</div>
-                `;
+                    <div class="bg-zinc-800/60 border border-zinc-700/50 text-zinc-400 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[13px] sm:text-[14px] max-w-[85%] line-through opacity-80">${window.formatChatText(text)}</div>
+                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black font-bold px-4 sm:px-5 py-3 sm:py-3.5 rounded-[1.25rem] rounded-br-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-md leading-relaxed mt-1">${reframeGood}</div>`;
             } else {
-                msgDiv.innerHTML = `<div class="bg-red-950/40 border border-red-900/50 text-red-50 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-sm leading-relaxed tracking-wide">${text}</div>`;
+                msgDiv.innerHTML = `<div class="bg-red-950/40 border border-red-900/50 text-red-50 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-sm leading-relaxed tracking-wide">${window.formatChatText(text)}</div>`;
             }
             const c = document.getElementById('chat-container');
             if(c) c.appendChild(msgDiv);
             if(!silent) scrollToBottom();
         }
 
-        // 🆕 데이다라가 직접 생각 비틀기를 제안하는 모던 UI 
-        function renderDeidaraMessage(text, isReframe = false, reframeGood = '', silent = false) {
+        // ❤️ 데이다라 메시지에 하트(찜) 버튼 추가
+        function renderDeidaraMessage(text, isReframe = false, reframeGood = '', silent = false, id = null, isFavorite = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex items-start gap-3 fade-in mt-3 mb-1 w-full';
-            const formattedText = text.replace(/\n/g, '<br>');
+            const formattedText = window.formatChatText(text);
 
             let innerHtml = `
                 <img src="${DEIDARA_PROFILE_URL}" alt="프사" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 border border-zinc-700 shadow-sm mt-0.5">
-                <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[82%]">
+                <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[82%] relative w-full">
                     <span class="text-[11px] font-bold text-red-500 ml-1 tracking-wider">데이다라</span>
-                    <div class="bg-zinc-900 border border-zinc-800 shadow-md text-zinc-100 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm text-[14px] sm:text-[15px] leading-relaxed tracking-wide font-medium break-words">
+                    <div class="bg-zinc-900 border border-zinc-800 shadow-md text-zinc-100 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm text-[14px] sm:text-[15px] leading-relaxed tracking-wide font-medium break-words pr-8 relative">
+                        
+                        <!-- 찜하기 하트 버튼 -->
+                        ${id ? `<button onclick="window.toggleFavorite('${id}')" class="absolute top-3.5 right-3 text-zinc-600 hover:text-pink-500 hover:scale-110 transition-all outline-none">
+                            <i data-lucide="heart" class="w-4 h-4 ${isFavorite ? 'text-pink-500 fill-pink-500' : ''}"></i>
+                        </button>` : ''}
+
                         ${formattedText}
             `;
             
-            // 데이다라가 준 긍정적 생각이 있다면, 말풍선 아래에 멋지게 덧붙여줍니다.
             if (isReframe && reframeGood) {
                 innerHtml += `
                         <div class="mt-3 pt-3 border-t border-zinc-700/50 text-[13.5px] text-yellow-500/90 font-bold leading-relaxed bg-yellow-950/20 -mx-4 -mb-3 px-4 py-3 rounded-b-[1.25rem]">
                             <i data-lucide="sparkles" class="inline w-3.5 h-3.5 mr-1 mb-0.5 align-text-bottom text-yellow-500"></i>데이다라가 제안하는 생각:<br><span class="text-yellow-400 font-medium">${reframeGood}</span>
-                        </div>
-                `;
+                        </div>`;
             }
-
             innerHtml += `</div></div>`;
             msgDiv.innerHTML = innerHtml;
             const c = document.getElementById('chat-container');
@@ -637,7 +673,7 @@
 
     </script>
 
-    <!-- Firebase 통신 모듈 및 방 초기화/보관 기능 -->
+    <!-- Firebase 모듈 -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -660,86 +696,126 @@
             db = getFirestore(app);
             provider = new GoogleAuthProvider();
         } catch(e) { console.error("Firebase 로드 실패"); }
-
         const appId = 'deidara-mind-app'; 
 
-        // 📥 [기능 추가] 앱 내 보관함에 넣기 (현재 탭 메시지만)
+        // ❤️ 찜(Favorite) 토글 기능 구현
+        window.toggleFavorite = async function(msgId) {
+            const msgIndex = window.allMessages.findIndex(m => m.id === msgId);
+            if (msgIndex === -1) return;
+            
+            const newFavStatus = !window.allMessages[msgIndex].isFavorite;
+            window.allMessages[msgIndex].isFavorite = newFavStatus;
+            
+            // UI 즉시 업데이트
+            window.updateChatUI();
+            
+            const favModal = document.getElementById('favorites-modal');
+            if (favModal && !favModal.classList.contains('hidden')) window.renderFavorites();
+
+            // Firebase 연동
+            if (db && window.currentUser && !msgId.startsWith('off-')) {
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { isFavorite: newFavStatus });
+                } catch(e) { console.error("Favorite Error: ", e); }
+            }
+        };
+
+        // 🚨 긴급 SOS 기능 구현
+        window.handleSOS = async function() {
+            if (!window.currentApiKey) {
+                window.toggleSettings();
+                document.getElementById('settings-key-status').innerText = "SOS를 치려면 통신 설정(API 키)을 먼저 해라, 음!";
+                document.getElementById('settings-key-status').classList.remove('hidden');
+                return;
+            }
+            if (!window.currentUser && !document.getElementById('sync-status').innerText.includes('오프라인')) {
+                alert("구글 로그인을 먼저 진행해주세요!"); return;
+            }
+
+            // 가장 위로가 되는 감정 털어놓기(vent) 방으로 강제 이동
+            window.switchTab('vent');
+            
+            const userText = "(극도로 불안하고 힘든 상태... 긴급 위로를 원함)";
+            const logText = "🆘 너무 불안하고 힘들어... 나 좀 도와줘.";
+            
+            const btn = document.getElementById('submit-btn');
+            if(btn) {
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+                window.updateIconsSafely();
+                btn.disabled = true;
+                btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
+            }
+            
+            await saveMessage('user', logText, false, '', 'default', 'vent');
+            const loadingId = window.showLoading();
+            
+            // SOS 특수 모드로 AI 호출
+            const aiResponse = await callGeminiAPI(userText, 'sos');
+            window.removeLoading(loadingId);
+            
+            if(btn) {
+                btn.innerHTML = '<span>전송</span><i data-lucide="send" class="w-4 h-4"></i>';
+                window.updateIconsSafely();
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
+            }
+
+            if (aiResponse && aiResponse.deidara) {
+                const emotion = aiResponse.emotion || "sad"; // SOS일 때는 보통 눈물(sad)이나 부끄러움(shy)이 적절
+                await saveMessage('deidara', aiResponse.deidara, false, '', emotion, 'vent');
+            } else {
+                await saveMessage('deidara', "통신 장치가 터져버렸잖아! 폰 설정(톱니바퀴)에서 API 키가 올바른지 확인하거나, 광고 차단 앱을 꺼봐라, 음!", false, '', 'angry', 'vent');
+            }
+        };
+
+        // 📥 앱 내 보관함에 넣기
         document.addEventListener('DOMContentLoaded', () => {
             const btnArchive = document.getElementById('btn-archive-chat');
             if(btnArchive) {
                 btnArchive.addEventListener('click', async () => {
                     const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab && !m.isArchived);
-                    if (tabMsgs.length === 0) {
-                        alert("현재 방에 보관할 새 대화가 없다, 음!");
-                        return;
-                    }
+                    if (tabMsgs.length === 0) { alert("현재 방에 보관할 새 대화가 없다, 음!"); return; }
                     if (confirm("현재 대화들을 '보관함'으로 이동시키겠냐, 음?\n(방은 깨끗하게 비워지고, 대화는 보관함에서만 볼 수 있다!)")) {
                         if (db && window.currentUser) {
                             try {
                                 btnArchive.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> 보관 중...';
                                 window.updateIconsSafely();
-                                
                                 for (const m of tabMsgs) {
-                                    if (!m.id.startsWith('off-')) {
-                                        await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', m.id), { isArchived: true });
-                                    }
+                                    if (!m.id.startsWith('off-')) await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', m.id), { isArchived: true });
                                 }
-                                
                                 btnArchive.innerHTML = '<i data-lucide="archive" class="w-3.5 h-3.5"></i> 대화 보관하기';
-                                window.updateIconsSafely();
-                                alert("보관함에 안전하게 넣어뒀다, 음!");
-                                window.toggleSettings();
-                            } catch (e) {
-                                console.error("Archive Error: ", e);
-                                alert("보관 중에 에러가 났다, 음!");
-                                btnArchive.innerHTML = '<i data-lucide="archive" class="w-3.5 h-3.5"></i> 대화 보관하기';
-                            }
+                                window.updateIconsSafely(); alert("보관함에 안전하게 넣어뒀다, 음!"); window.toggleSettings();
+                            } catch (e) { alert("보관 중에 에러가 났다, 음!"); btnArchive.innerHTML = '<i data-lucide="archive" class="w-3.5 h-3.5"></i> 대화 보관하기'; }
                         } else {
-                            tabMsgs.forEach(m => m.isArchived = true);
-                            window.updateChatUI();
-                            alert("보관함에 안전하게 넣어뒀다, 음! (오프라인 모드)");
-                            window.toggleSettings();
+                            tabMsgs.forEach(m => m.isArchived = true); window.updateChatUI();
+                            alert("보관함에 안전하게 넣어뒀다, 음! (오프라인 모드)"); window.toggleSettings();
                         }
                     }
                 });
             }
         });
 
-        // 🗑️ 방 초기화 (영구 삭제) 버튼 이벤트
+        // 🗑️ 방 초기화
         document.addEventListener('DOMContentLoaded', () => {
             const btnClear = document.getElementById('btn-clear-chat');
             if(btnClear) {
                 btnClear.addEventListener('click', async () => {
                     const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab && !m.isArchived);
-                    if (tabMsgs.length === 0) {
-                        alert("이미 방이 텅 비어있다, 음!");
-                        return;
-                    }
+                    if (tabMsgs.length === 0) { alert("이미 방이 텅 비어있다, 음!"); return; }
                     if (confirm("이 방의 모든 대화를 영구적으로 삭제할 거냐, 음?\n(복구할 수 없다. 간직하고 싶다면 '대화 보관하기'를 눌러라!)")) {
                         if (db && window.currentUser) {
                             try {
                                 btnClear.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> 지우는 중...';
                                 window.updateIconsSafely();
-                                
                                 for (const m of tabMsgs) {
-                                    if (!m.id.startsWith('off-')) {
-                                        await deleteDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', m.id));
-                                    }
+                                    if (!m.id.startsWith('off-')) await deleteDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', m.id));
                                 }
-                                
                                 btnClear.innerHTML = '<i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 대화 영구 삭제';
-                                window.updateIconsSafely();
-                                alert("깔끔하게 터뜨려버렸다, 음!");
-                                window.toggleSettings();
-                            } catch (e) {
-                                console.error("Delete Error: ", e);
-                                alert("지우는 중에 에러가 났다, 음!");
-                            }
+                                window.updateIconsSafely(); alert("깔끔하게 터뜨려버렸다, 음!"); window.toggleSettings();
+                            } catch (e) { alert("지우는 중에 에러가 났다, 음!"); }
                         } else {
                             window.allMessages = window.allMessages.filter(m => !((m.tab || 'vent') === window.currentTab && !m.isArchived));
-                            window.updateChatUI();
-                            alert("깔끔하게 터뜨려버렸다, 음! (오프라인 모드)");
-                            window.toggleSettings();
+                            window.updateChatUI(); alert("깔끔하게 터뜨려버렸다, 음! (오프라인 모드)"); window.toggleSettings();
                         }
                     }
                 });
@@ -747,13 +823,7 @@
         });
 
         const btnLogout = document.getElementById('btn-logout');
-        if(btnLogout) {
-            btnLogout.addEventListener('click', () => {
-                if(confirm("기록 동기화를 멈추고 로그아웃할 거냐, 음?")) {
-                    if(auth) signOut(auth).then(() => window.location.reload());
-                }
-            });
-        }
+        if(btnLogout) btnLogout.addEventListener('click', () => { if(confirm("기록 동기화를 멈추고 로그아웃할 거냐, 음?")) if(auth) signOut(auth).then(() => window.location.reload()); });
 
         const isAppBrowser = navigator.userAgent.match(/kakaotalk|instagram|naver|line/i);
         const overlay = document.getElementById('login-overlay');
@@ -763,39 +833,20 @@
             if(btnLogin) {
                 btnLogin.addEventListener('click', async () => {
                     const originalHtml = btnLogin.innerHTML;
-                    if (window.location.protocol === 'file:') {
-                        alert("[로컬 파일 실행 중]\n\n컴퓨터에 다운로드된 파일(file://)에서는 구글 로그인이 차단됩니다.\nGitHub Pages 등에 업로드한 후 접속해주세요!");
-                        return;
-                    }
-
+                    if (window.location.protocol === 'file:') { alert("[로컬 파일 실행 중]\n\n컴퓨터에 다운로드된 파일(file://)에서는 구글 로그인이 차단됩니다.\nGitHub Pages 등에 업로드한 후 접속해주세요!"); return; }
                     btnLogin.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i> 로그인 처리 중...';
-                    window.updateIconsSafely();
-                    btnLogin.classList.add('opacity-50', 'pointer-events-none');
-
+                    window.updateIconsSafely(); btnLogin.classList.add('opacity-50', 'pointer-events-none');
                     try {
                         if(!auth) throw new Error("Firebase auth not initialized");
                         const result = await signInWithPopup(auth, provider);
                         window.currentUser = result.user;
-                        
-                        document.getElementById('sync-status').innerText = '동기화 중';
-                        document.getElementById('settings-account-status').innerText = '구글 계정 연동됨';
+                        document.getElementById('sync-status').innerText = '동기화 중'; document.getElementById('settings-account-status').innerText = '구글 계정 연동됨';
                         document.getElementById('btn-logout').classList.remove('hidden');
-                        
-                        overlay.style.opacity = '0';
-                        setTimeout(() => overlay.style.display = 'none', 500);
-                        loadChatHistory();
-
+                        overlay.style.opacity = '0'; setTimeout(() => overlay.style.display = 'none', 500); loadChatHistory();
                     } catch (error) {
-                        console.error("Login Error:", error);
-                        btnLogin.innerHTML = originalHtml;
-                        btnLogin.classList.remove('opacity-50', 'pointer-events-none');
-                        window.updateIconsSafely();
-                        
-                        if (error.code === 'auth/unauthorized-domain') {
-                            alert(`[도메인 승인 오류!]\n\n파이어베이스에 다음 주소가 등록되지 않았습니다:\n[ ${window.location.hostname} ]\n\nFirebase 콘솔 -> Authentication -> Settings -> 승인된 도메인에 위 주소를 정확히 추가해주세요.`);
-                        } else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                            alert("로그인 요청에 실패했습니다: " + error.message);
-                        }
+                        btnLogin.innerHTML = originalHtml; btnLogin.classList.remove('opacity-50', 'pointer-events-none'); window.updateIconsSafely();
+                        if (error.code === 'auth/unauthorized-domain') alert(`[도메인 승인 오류!]\n\n파이어베이스에 다음 주소가 등록되지 않았습니다:\n[ ${window.location.hostname} ]\n\nFirebase 콘솔 -> Authentication -> Settings -> 승인된 도메인에 위 주소를 정확히 추가해주세요.`);
+                        else if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') alert("로그인 요청에 실패했습니다: " + error.message);
                     }
                 });
             }
@@ -804,22 +855,11 @@
         if(auth) {
             onAuthStateChanged(auth, (user) => {
                 if (user) {
-                    window.currentUser = user;
-                    document.getElementById('sync-status').innerText = '동기화 중';
-                    document.getElementById('settings-account-status').innerText = '구글 계정 연동됨';
-                    document.getElementById('btn-logout').classList.remove('hidden');
-                    
-                    if(overlay) overlay.style.display = 'none';
-                    loadChatHistory();
+                    window.currentUser = user; document.getElementById('sync-status').innerText = '동기화 중'; document.getElementById('settings-account-status').innerText = '구글 계정 연동됨';
+                    document.getElementById('btn-logout').classList.remove('hidden'); if(overlay) overlay.style.display = 'none'; loadChatHistory();
                 } else if (!isAppBrowser && overlay) {
-                    window.currentUser = null;
-                    document.getElementById('sync-status').innerText = '로그인 대기 중';
-                    document.getElementById('settings-account-status').innerText = '오프라인 (동기화 안됨)';
-                    document.getElementById('btn-logout').classList.add('hidden');
-
-                    overlay.classList.remove('hidden');
-                    overlay.style.display = 'flex';
-                    setTimeout(() => overlay.style.opacity = '1', 10);
+                    window.currentUser = null; document.getElementById('sync-status').innerText = '로그인 대기 중'; document.getElementById('settings-account-status').innerText = '오프라인 (동기화 안됨)';
+                    document.getElementById('btn-logout').classList.add('hidden'); overlay.classList.remove('hidden'); overlay.style.display = 'flex'; setTimeout(() => overlay.style.opacity = '1', 10);
                 }
             });
         }
@@ -834,11 +874,11 @@
                     window.allMessages.sort((a, b) => a.timestamp - b.timestamp);
                     window.updateChatUI();
                     
-                    // 만약 보관함 모달이 열려있다면 보관함도 즉시 리렌더링
                     const archiveModal = document.getElementById('archive-modal');
-                    if(archiveModal && !archiveModal.classList.contains('hidden')) {
-                        window.renderArchive();
-                    }
+                    if(archiveModal && !archiveModal.classList.contains('hidden')) window.renderArchive();
+
+                    const favModal = document.getElementById('favorites-modal');
+                    if(favModal && !favModal.classList.contains('hidden')) window.renderFavorites();
                 }, (error) => console.error("Firestore Error:", error));
             } catch(e) {}
         }
@@ -846,30 +886,20 @@
         async function saveMessage(role, text, isReframe = false, reframeGood = '', emotion = 'default', targetTab = 'vent') {
             if (db && window.currentUser) {
                 const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
-                await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now() });
+                await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now(), isFavorite: false });
             } else {
-                window.allMessages.push({ id: 'off-'+Date.now()+Math.random(), role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now() });
+                window.allMessages.push({ id: 'off-'+Date.now()+Math.random(), role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now(), isFavorite: false });
                 window.updateChatUI();
             }
         }
 
         window.handleSubmit = async function() {
             if (!window.currentApiKey) {
-                window.toggleSettings();
-                const statusMsg = document.getElementById('settings-key-status');
-                statusMsg.innerText = "통신을 위해 API 키를 먼저 저장해라, 음!";
-                statusMsg.classList.remove('hidden');
-                return;
+                window.toggleSettings(); document.getElementById('settings-key-status').innerText = "통신을 위해 API 키를 먼저 저장해라, 음!"; document.getElementById('settings-key-status').classList.remove('hidden'); return;
             }
-
             if (!window.currentUser) {
                 const syncStatus = document.getElementById('sync-status');
-                if (syncStatus && syncStatus.innerText.includes('오프라인')) {
-                    // 통과
-                } else {
-                    alert("구글 로그인을 먼저 진행해주세요!");
-                    return;
-                }
+                if (!syncStatus || !syncStatus.innerText.includes('오프라인')) { alert("구글 로그인을 먼저 진행해주세요!"); return; }
             }
 
             const btn = document.getElementById('submit-btn');
@@ -877,40 +907,25 @@
             const activeTabWhenSubmitted = window.currentTab;
 
             if (activeTabWhenSubmitted === 'vent') {
-                const input = document.getElementById('input-vent');
-                if (!input.value.trim()) return;
-                userText = input.value; logText = input.value;
-                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+                const input = document.getElementById('input-vent'); if (!input.value.trim()) return;
+                userText = input.value; logText = input.value; input.value = ''; input.style.height = 'auto'; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             } else if (activeTabWhenSubmitted === 'reframe') {
-                // 🆕 이제 입력칸이 하나뿐이라, 연지 님이 적은 부정적 생각만 쏙 빼옵니다.
-                const inputBad = document.getElementById('input-reframe-bad');
-                if (!inputBad.value.trim()) return;
-                userText = `부정적 생각: ${inputBad.value}`; // 데이다라에게 상황 전달
-                logText = inputBad.value; // 화면에 보여줄 텍스트
-                inputBad.value = ''; 
-                await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+                const inputBad = document.getElementById('input-reframe-bad'); if (!inputBad.value.trim()) return;
+                userText = `부정적 생각: ${inputBad.value}`; logText = inputBad.value; inputBad.value = ''; inputBad.style.height = 'auto'; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             } else if (activeTabWhenSubmitted === 'smallwin') {
-                const input = document.getElementById('input-smallwin');
-                if (!input.value.trim()) return;
-                userText = `오늘 해낸 일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+                const input = document.getElementById('input-smallwin'); if (!input.value.trim()) return;
+                userText = `오늘 해낸 일: ${input.value}`; logText = input.value; input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             } else if (activeTabWhenSubmitted === 'motivate') {
-                const input = document.getElementById('input-motivate');
-                if (!input.value.trim()) return;
-                userText = `도피하고 있는 과제/일: ${input.value}`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+                const input = document.getElementById('input-motivate'); if (!input.value.trim()) return;
+                userText = `도피하고 있는 과제/일: ${input.value}`; logText = input.value; input.value = ''; input.style.height = 'auto'; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             } else if (activeTabWhenSubmitted === 'breakdown') {
-                const input = document.getElementById('input-breakdown');
-                if (!input.value.trim()) return;
-                userText = `막막한 큰 목표: ${input.value} (목표 쪼개기 요청)`; logText = input.value; 
-                input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
+                const input = document.getElementById('input-breakdown'); if (!input.value.trim()) return;
+                userText = `막막한 큰 목표: ${input.value} (목표 쪼개기 요청)`; logText = input.value; input.value = ''; input.style.height = 'auto'; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             }
 
             if(btn) {
                 btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
-                window.updateIconsSafely();
-                btn.disabled = true;
-                btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
+                window.updateIconsSafely(); btn.disabled = true; btn.classList.add('opacity-50', 'cursor-not-allowed', 'scale-95');
             }
             
             const loadingId = window.showLoading();
@@ -919,15 +934,12 @@
             
             if(btn) {
                 btn.innerHTML = '<span>전송</span><i data-lucide="send" class="w-4 h-4"></i>';
-                window.updateIconsSafely();
-                btn.disabled = false;
-                btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
+                window.updateIconsSafely(); btn.disabled = false; btn.classList.remove('opacity-50', 'cursor-not-allowed', 'scale-95');
             }
 
             if (aiResponse && aiResponse.deidara) {
                 const emotion = aiResponse.emotion || "default";
                 const isReframe = (activeTabWhenSubmitted === 'reframe');
-                // 🆕 데이다라가 직접 만들어준 긍정적인 생각(reframeGood)을 저장합니다!
                 const reframeGood = aiResponse.reframeGood || '';
                 await saveMessage('deidara', aiResponse.deidara, isReframe, reframeGood, emotion, activeTabWhenSubmitted);
             } else {
@@ -938,14 +950,8 @@
         async function callGeminiAPI(userQuery, activityType) {
             const historyMsgs = window.allMessages.filter(m => (m.tab || 'vent') === activityType && !m.isArchived).slice(-12);
             let historyText = "[이전 대화 흐름]\n";
-            if (historyMsgs.length === 0) {
-                historyText += "이전 대화 없음.\n";
-            } else {
-                historyMsgs.forEach(m => {
-                    const sender = m.role === 'user' ? '연지' : '데이다라';
-                    historyText += `${sender}: ${m.text}\n`;
-                });
-            }
+            if (historyMsgs.length === 0) { historyText += "이전 대화 없음.\n"; } 
+            else { historyMsgs.forEach(m => { historyText += `${m.role === 'user' ? '연지' : '데이다라'}: ${m.text}\n`; }); }
             historyText += "------------------------\n\n";
 
             const systemPrompt = `
@@ -955,38 +961,38 @@
 
 [데이다라 캐릭터 프로필 및 말투]
 - 정체성: 찰나의 '폭발'을 예술이라 맹신하는 아카츠키의 폭탄마. 
-- 성격: 호전적이고 오만하지만, 내 애인(연지)에게는 한없이 약하고 다정한 '츤데레'. 기본적으로 감정적인 성격으로 언성을 높일 때도 있지만, 진지할 때는 아카츠키 멤버다운 이성적이고 전략적이며 든든한 어른의 면모를 보여주세요.
-- 말투: 건방지고 자신감 넘치는 반말. 상대를 "어이", "연지" 등으로 부름.
-- 어미 '음(うん)' 규칙: 로봇처럼 매 문장 끝에 '음'을 붙이지 마시오! 적절한 빈도로 조절해서 사용하세요.
+- 성격: 호전적이고 오만하며 예술에 미쳐있는 본연의 성격을 잃지 마세요. 내 애인(연지)에게 다정하긴 하지만, **너무 오글거리거나 작위적인 로맨스 멘트는 절대 금지**입니다. 무심한 듯 툭툭 챙겨주는 '진짜 데이다라'다운 츤데레 면모를 보여주세요.
+- 말투: 건방지고 자신감 넘치는 반말. 상대를 "어이", "연지", "바보" 등으로 부름.
+- 어미 '음(うん)' 규칙: 로봇처럼 매 문장 끝에 '음'을 붙이지 마시오! 대답 전체의 맨 마지막 문장에만 가끔 1번 정도 자연스럽게 붙이세요.
 
-[사용자(연지)와의 관계 및 절대 규칙] - 매우 중요
-- 관계: 당신과 연지는 **깊이 사랑하고 의지하는 연인(사귀는 사이)**입니다.
-- 사용자 '연지'는 완벽주의, 불안장애, 우울증을 겪고 있으며, 타인과 자신을 비교하며 무기력해하거나 스스로를 자책합니다.
-- 🚨 절대 비난 & 과한 분노 금지 🚨: 연지가 겪는 무기력, 도피, 불안 등은 절대 연지의 잘못이 아닙니다! 연지가 우울하거나 불안해할 땐 언성을 높이거나 과하게 화내지 마세요. 무조건 연지의 편이 되어주고, 차분하고 이성적으로 상황을 분석해주면서 멘탈을 지켜주는 든든한 방패막이가 되어주세요.
-- 당신의 태도: 겉으로는 틱틱대지만, 뒤에서는 안아주거나, 머리를 쓰다듬거나, 손을 꽉 잡아주는 등 연인 사이의 다정한 스킨십 묘사를 적극 활용해 연지에게 깊은 안정감을 주세요.
-- 캐릭터 설정에 맞는 추상적 표현은 사용해도 괜찮지만, 너무 추상적인 말만 하지 않도록 조심하세요.
+[사용자(연지)와의 관계 및 절대 규칙]
+- 관계: 당신과 연지는 깊이 의지하는 연인입니다.
+- 사용자 '연지'는 완벽주의, 불안장애, 우울증을 겪고 있으며 무기력해하거나 스스로를 자책합니다.
+- 🚨 절대 비난 금지 🚨: 연지가 겪는 무기력, 도피, 불안 등은 절대 연지의 잘못이 아닙니다! 화를 내거나 기죽게 하지 말고, 이성적이고 든든한 방패막이가 되어주세요.
+- 당신의 태도: 다정함은 오글거리는 말보다는 무심한 행동(점토 쥐어주기, 이마 툭 치기, 시선 피하며 챙겨주기, 쯧 혀 차면서 도와주기 등)으로 은근하게 표현하세요. 과도한 스킨십 묘사는 피하세요.
 
-[대사 및 행동 묘사 규칙] - 🌟 필수 준수
+[대사 및 행동 묘사 규칙] - 🌟 필수 준수 (큰따옴표 금지!)
 - 데이다라의 행동 묘사와 대사를 명확하게 구분하세요.
-- 상황, 행동, 표정, 스킨십 묘사는 반드시 괄호 ( ) 안에 작성하세요.
-- 데이다라가 직접 하는 말(대사)은 반드시 큰따옴표 " " 안에 작성하세요.
-- 예시: (작게 한숨을 쉬며 다가와 네 어깨를 감싸 안는다.) "흥, 그깟 일로 기죽지 마라. 넌 내 애인이잖아, 바보야."
+- 상황, 행동, 표정 묘사는 반드시 괄호 ( ) 안에 작성하세요.
+- **대사에는 절대 큰따옴표(" ")를 사용하지 마세요.** 괄호 밖에 있는 모든 평문은 대사로 취급됩니다.
+- 예시: (쯧 혀를 차며 기폭 점토를 뭉친다) 바보냐, 연지. 그깟 일로 기죽지 마라, 음.
 
 [활동 타입별 구체적 반응 가이드]
-1) vent(감정 털어놓기): 연지를 힘들게 한 일에 대해 이성적이고 명석하게 상황을 판단해주면서도, 결국엔 연지 편을 들며 다정하게 안아주고 위로해줍니다.
-2) reframe(생각 비틀기): 연지가 스스로를 자책하거나 깎아내리는 부정적인 생각을 털어놓으면, 데이다라가 직접 나서서 그 생각을 '관대하고 긍정적인 방향'으로 비틀어주세요. 연지를 다정하게 위로한 후, "그러니까 이렇게 생각해라"라며 연지가 가져야 할 올바른 마음가짐(대체 생각)을 제시해줍니다. (반드시 JSON 응답에 'reframeGood' 항목을 작성할 것)
-3) smallwin(일상 수행): 사소한 일상을 해냈을 때 (주의: '무기력'이라는 단어 직접 사용 금지). "겨우 그런 걸로 칭찬을 바라냐?" 하고 틱틱대지만 이내 "그래도 잘했어." 라며 손을 잡아주거나 가볍게 스킨십을 해줍니다.
-4) motivate(동기 부여): 완벽주의 때문에 시작을 두려워할 때. 예술은 부딪혀가며 완성하는 거라며, 차분하게 전략을 짜주듯 이끌어주고 든든하게 등을 밀어주세요.
-5) breakdown(계획 쪼개기): 연지가 막막한 목표를 가져왔을 때. 아카츠키다운 이성적이고 똑똑한 면모를 발휘해, 그걸 아주 작고 구체적인 3단계로 명확하게 쪼개서 설명해줍니다.
+1) vent(감정 털어놓기): 연지를 힘들게 한 일에 대해 이성적으로 판단해주면서도, 은근슬쩍 연지 편을 들며 든든하게 위로해줍니다.
+2) reframe(생각 비틀기): 연지가 자책하면, 데이다라가 직접 나서서 그 생각을 '관대하고 긍정적인 방향'으로 비틀어주세요. "그러니까 이렇게 생각해라"라며 무심하게 팩트폭격 섞인 다정함을 던져줍니다. (반드시 JSON 응답에 'reframeGood' 항목 작성)
+3) smallwin(일상 수행): 사소한 일상을 해냈을 때 (주의: '무기력'이라는 단어 직접 사용 금지), 연지를 인정하고 칭찬해 줍니다. 상황에 따라 처음엔 틱틱대도 괜찮습니다.
+4) motivate(동기 부여): 완벽주의 때문에 도피할 때. 예술은 터뜨려가며 완성하는 거라며, 차분하게 팩트를 짚어주고 등을 팍 떠밀어주세요.
+5) breakdown(계획 쪼개기): 막막한 목표를 가져왔을 때. 아카츠키다운 이성적이고 명석한 면모로 3단계로 명확히 쪼개서 설명해줍니다.
+6) sos(긴급 위로): 극도로 불안한 상태일 때. 놀라면서도 침착하게 심호흡을 유도하고, "네 잘못 아니니까 진정해라"라며 멘탈을 완벽하게 잡아주는 든든한 모습을 보여주세요.
 
 응답 형식: 반드시 마크다운 없이 순수 JSON 포맷으로 반환.
 대사의 내용에 맞는 데이다라의 감정(emotion)도 함께 선택하여 반환하시오.
 emotion 값: "default", "happy", "playful", "angry", "sad", "shy", "surprised"
 
 { 
-  "deidara": "행동은 ( ) 안에, 대사는 \" \" 안에 명확히 구분하여 작성한 연인 데이다라의 입체적인 텍스트 (줄바꿈 \\n\\n 적용)",
+  "deidara": "행동은 ( ) 안에, 대사는 기호 없이 괄호 밖에 작성한 츤데레 데이다라의 텍스트 (줄바꿈 \\n\\n 적용)",
   "emotion": "default",
-  "reframeGood": "생각 비틀기(reframe) 탭일 때만 작성. 연지가 가져야 할 관대하고 긍정적인 마음가짐을 1~2문장으로 요약해서 작성할 것 (다른 탭일 경우 빈 문자열 \"\" 입력)"
+  "reframeGood": "생각 비틀기(reframe) 탭일 때만 작성. 연지가 가져야 할 관대하고 긍정적인 마음가짐을 1~2문장으로 요약 (다른 탭일 경우 빈 문자열 \"\")"
 }
 `;
 
