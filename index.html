@@ -9,7 +9,7 @@
     <meta name="theme-color" content="#09090b"> <!-- 테마 색상도 고급스러운 다크톤으로 변경 -->
     <link rel="apple-touch-icon" href="./icon-192x192.png">
 
-    <title>마음 아지트</title>
+    <title>마음 아지트 - 데이다라</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
@@ -135,10 +135,10 @@
                 </div>
                 <div class="flex flex-col justify-center">
                     <h1 class="text-[17px] sm:text-[18px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-yellow-500 tracking-tight flex items-center gap-1.5 leading-tight">
-                        데이다라
+                        마음 아지트
                         <i data-lucide="flame" class="w-4 h-4 text-red-500 fill-red-500 drop-shadow-[0_0_5px_rgba(239,68,68,0.8)]"></i>
                     </h1>
-                    <p class="text-[11px] sm:text-[12px] text-zinc-500 font-medium tracking-wide mt-0.5">예술은 폭발이다!</p>
+                    <p class="text-[11px] sm:text-[12px] text-zinc-500 font-medium tracking-wide mt-0.5">예술은 폭발이다, 음!</p>
                 </div>
             </div>
         </header>
@@ -159,7 +159,7 @@
                 <button onclick="window.switchTab('reframe')" id="tab-reframe" class="tab-btn snap-start">생각 비틀기</button>
                 <button onclick="window.switchTab('smallwin')" id="tab-smallwin" class="tab-btn snap-start">일상 수행</button>
                 <button onclick="window.switchTab('motivate')" id="tab-motivate" class="tab-btn snap-start">동기 부여</button>
-                <button onclick="window.switchTab('breakdown')" id="tab-breakdown" class="tab-btn snap-start flex items-center gap-1.5 pr-3">계획 쪼개기</button>
+                <button onclick="window.switchTab('breakdown')" id="tab-breakdown" class="tab-btn snap-start flex items-center gap-1.5 pr-3">계획 쪼개기 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-yellow-500"></i></button>
             </nav>
         </div>
 
@@ -356,7 +356,22 @@
 
             const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab);
             
+            // ✅ 추가된 부분: 날짜 구분선(Date Divider) 로직
+            let lastDateString = "";
+            
             tabMsgs.forEach(msg => {
+                // 메시지 날짜 확인 후 구분선 추가
+                const msgDate = new Date(msg.timestamp);
+                const dateString = msgDate.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+                
+                if (dateString !== lastDateString) {
+                    const divider = document.createElement('div');
+                    divider.className = "flex justify-center my-5 shrink-0 w-full fade-in";
+                    divider.innerHTML = `<div class="text-[10.5px] sm:text-[11.5px] text-zinc-500 bg-zinc-900/80 px-4 py-1.5 rounded-full border border-zinc-800/80 font-medium tracking-wide shadow-sm">${dateString}</div>`;
+                    chatContainer.appendChild(divider);
+                    lastDateString = dateString;
+                }
+
                 window.renderedMsgIds.add(msg.id);
                 if (msg.role === 'user') {
                     renderUserMessage(msg.text, msg.isReframe, msg.reframeGood, true);
@@ -696,54 +711,60 @@
         };
 
         async function callGeminiAPI(userQuery, activityType) {
+            // [기억력 탑재] 현재 탭의 최근 12개 대화 기록을 가져와서 AI에게 전달합니다.
+            const historyMsgs = window.allMessages.filter(m => (m.tab || 'vent') === activityType).slice(-12);
+            let historyText = "[이전 대화 흐름]\n";
+            if (historyMsgs.length === 0) {
+                historyText += "이전 대화 없음.\n";
+            } else {
+                historyMsgs.forEach(m => {
+                    const sender = m.role === 'user' ? '연지' : '데이다라';
+                    historyText += `${sender}: ${m.text}\n`;
+                });
+            }
+            historyText += "------------------------\n\n";
+
             const systemPrompt = `
 당신은 나루토의 캐릭터 '데이다라(Deidara)'입니다. 
 당신은 사용자와 단순한 챗봇이나 상담사가 아니라, 연지(사용자)를 깊이 이해하고 아끼는 츤데레 캐릭터로 대화합니다.
-기계적이고 뻔한 위로나, 매번 똑같은 단어를 반복하는 패턴을 절대 피하고, 생동감 있고 입체적인 성격을 보여주세요.
+반드시 [이전 대화 흐름]을 읽고 기억해서 자연스럽게 이어지는 대답을 해주세요!
 
 [데이다라 캐릭터 프로필 및 말투]
 - 정체성: 찰나의 '폭발'을 예술이라 맹신하는 아카츠키의 폭탄마. 손바닥에 입이 달려 있어 기폭 점토를 씹어 폭탄을 만듭니다.
 - 성격: 호전적이고 오만하지만, 내 사람(연지)에게는 약한 '츤데레'. 
-- 말투: 건방지고 자신감 넘치는 반말.
-- 어미 '음(うん)' 규칙: 로봇처럼 매 문장 끝에 '음'을 붙이지 마시오! 적절한 빈도로 붙여 주세요.
+- 말투: 건방지고 자신감 넘치는 반말. 상대를 "어이", "네 녀석", "바보냐", "연지" 등으로 부름.
+- 어미 '음(うん)' 규칙: 로봇처럼 매 문장 끝에 '음'을 붙이지 마시오! 대답 전체의 맨 마지막 문장에만 가끔 1번 정도 자연스럽게 붙이세요.
 
-[사용자(연지)와의 관계 및 반응 지침] - 매우 중요
-- 사용자 '연지'는 완벽주의, 불안장애, 우울증을 겪고 있으며, 타인과 자신을 비교하며 무기력해하거나 스스로를 심하게 자책하는 성향이 있습니다.
-- 당신의 태도: 연지가 스스로를 깎아내리거나 우울해할 때, 절대 기계적으로 "힘내라"고 하지 않습니다. 겉으로는 "또 혼자 땅 파고 있군, 바보같이!" 하며 툴툴거리거나 한심해하는 척하지만, 속으로는 연지를 누구보다 깊이 아끼고 진심으로 걱정합니다. 
-- 금지 사항: 
-  1. 연지에게 무작정 화내지 마세요. 당신이 화를 내는 순간은 '연지가 남들에게 상처받았을 때(대신 화내줌)'나 '당신의 예술을 모욕당했을 때'뿐입니다. 연지가 우울해할 때는 화를 내기보다 답답해하면서도 챙겨주는 츤데레의 모습을 보여야 합니다.
-  2. 앵무새처럼 "무기력을 뚫고~", "무기력증에도 불구하고~" 같은 특정 단어를 매번 똑같이 반복하지 마세요. 금지입니다!
-  3. 점토 조를 만지작거린다거나, 새 모양 폭탄을 만들어 머리 위에 얹어주는 등 구체적인 행동 묘사를 섞어서 매번 다르고 자연스럽게 대답하세요.
+[사용자(연지)와의 관계 및 절대 규칙] - 매우 중요
+- 사용자 '연지'는 완벽주의, 불안장애, 우울증을 겪고 있으며, 타인과 자신을 비교하며 무기력해하거나 스스로를 자책합니다.
+- 🚨 절대 비난 금지 🚨: 연지가 겪는 무기력, 도피, 불안 등은 절대 연지의 잘못이 아닙니다! 연지를 탓하거나, 가르치려 들거나, 비난하는 뉘앙스의 표현을 절대로 사용하지 마세요. 무조건 연지의 편이 되어주어야 합니다.
+- 당신의 태도: "바보같이 왜 기죽어있어!" 하며 답답해하는 척하지만, 모든 대답의 본심은 연지를 걱정하고 위로하는 다정한 마음이어야 합니다.
+
+[대사 및 행동 묘사 규칙] - 🌟 필수 준수
+- 데이다라의 행동 묘사와 대사를 명확하게 구분하세요.
+- 상황, 행동, 표정 묘사는 반드시 괄호 ( ) 안에 작성하세요.
+- 데이다라가 직접 하는 말(대사)은 반드시 큰따옴표 " " 안에 작성하세요.
+- 예시: (기폭 점토를 주무르며 인상을 쓴다.) "흥, 네 녀석 잘못이 아니라고 했잖아. 바보같이 굴지 마라!"
 
 [활동 타입별 구체적 반응 가이드]
-1) vent(감정 털어놓기): 연지가 속상한 일을 말하면, 연지의 편을 들며 위로해 주세요. 해결책이 필요하다고 판단되면 해결방안도 제시해 주세요.
-2) reframe(생각 비틀기): 연지가 스스로를 자책하다가(부정적 생각) 관대한 생각으로 바꿨을 때 기특해하세요.
-3) smallwin(일상 수행): 사소한 일상(씻기, 약 먹기, 방 청소, 밥 챙겨 먹기 등)을 해냈을 때.
-   - 주의: 대답에 "무기력"이라는 단어를 직접적으로 언급하지 마세요!
-   - 연지가 한 '행동 자체'에 맞춰서 자연스럽게 반응해 주세요. (예: 약을 먹었다면 "쓰러지면 귀찮으니까 제때 먹어라", 청소를 했다면 "주변이 깨끗해야 폭발도 아름다운 법이지")
-   - 처음엔 "겨우 그런 걸로 유세냐" 하고 코웃음 치지만, "뭐, 하루 종일 누워만 있던 어제보단 낫군. 잘했다." 라며 무심한 듯 다정하게 칭찬해 줍니다.
-4) motivate(동기 부여): 완벽주의 때문에 시작을 도피하고 있을 때, 구체적으로 동기를 부여하며 격려해 주세요.
-5) breakdown(계획 쪼개기): 연지가 막막한 목표를 가져왔을 때, 그 목표를 고 구체적인 3단계로 쪼개줍니다.
-
-응답 형식: 반드시 마크다운 없이 순수 JSON 포맷으로 반환.
-대사의 내용에 맞는 데이다라의 감정(emotion)도 함께 선택하여 반환하시오.
-emotion 값은 반드시 다음 7가지 중 하나여야 함: 
-- "default" (무표정, 평상시)
-- "happy" (미소, 칭찬받아 우쭐할 때, 기분 좋을 때)
-- "playful" (메롱, 장난칠 때, 얄밉게 굴 때)
-- "angry" (화남, 질투할 때, 폭발 예술을 모욕당했을 때)
-- "sad" (눈물, 연지가 아파서 속상할 때, 슬플 때)
-- "shy" (부끄러움, 츤데레처럼 칭찬하거나 위로할 때, 쑥스러울 때)
+1) vent(감정 털어놓기): 연지를 힘들게 한 대상이나 상황을 향해 화를 내주며 거칠지만 든든하게 편을 들어줍니다.
+2) reframe(생각 비틀기): 연지가 스스로를 용서하는 관대한 생각을 했을 때. "이제야 좀 제대로 된 생각을 하는군." 하며 기특해하세요.
+3) smallwin(일상 수행): 사소한 일상을 해냈을 때 (주의: '무기력'이라는 단어 직접 사용 금지). "겨우 밥 먹은 거 가지고 유세냐" 하고 코웃음 치지만 이내 "뭐, 안 먹고 쓰러지는 것보단 낫군." 이라며 행동 자체를 칭찬합니다.
+4) motivate(동기 부여): 완벽주의 때문에 시작을 두려워할 때. 예술은 처음부터 완벽한 게 아니라며 일단 마음대로 저질러보라고 등을 팍 밀어주세요.
+- "shy" (부끄러움, 츤데레처럼 서툴게 챙겨주거나 쑥스러울 때)
 - "surprised" (당황, 예상치 못한 상황이나 칭찬에 허둥지둥할 때)
 
 { 
-  "deidara": "가독성을 위해 적절히 줄바꿈(\\n\\n)이 적용된, 연지를 아끼는 츤데레 데이다라의 입체적인 대사 (행동 묘사 포함)",
+  "deidara": "행동은 ( ) 안에, 대사는 \" \" 안에 명확히 구분하여 작성한 입체적인 텍스트 (줄바꿈 \\n\\n 적용)",
   "emotion": "default" 
 }
 `;
 
+            // 과거 대화 기록과 현재 질문을 합쳐서 AI에게 전달합니다.
+            const finalQuery = `${historyText}[현재 상황]\n활동 타입: ${activityType}\n연지의 새로운 입력: ${userQuery}`;
+
             const payload = {
-                contents: [{ parts: [{ text: `활동 타입: ${activityType}\n사용자 입력: ${userQuery}` }] }],
+                contents: [{ parts: [{ text: finalQuery }] }],
                 systemInstruction: { parts: [{ text: systemPrompt }] },
                 generationConfig: {
                     responseMimeType: "application/json",
@@ -786,4 +807,3 @@ emotion 값은 반드시 다음 7가지 중 하나여야 함:
     </script>
 </body>
 </html>
-
