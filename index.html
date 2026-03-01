@@ -219,14 +219,11 @@
                 <label class="block text-[11px] font-medium text-zinc-400 mb-1.5 ml-1">지금 느끼는 부정적인 감정이나 고민</label>
                 <textarea id="input-vent" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 주변 사람들은 다 잘하는데 나만 뒤처지는 것 같아 불안해..."></textarea>
             </div>
+            <!-- 🆕 생각 비틀기 폼: 이제 내가 관대한 생각 쓸 필요 없이 데이다라가 대신 해줌! -->
             <div id="form-reframe" class="hidden fade-in space-y-3">
                 <div>
-                    <label class="block text-[11px] font-medium text-zinc-400 mb-1.5 ml-1">자동적 사고 (부정적 생각)</label>
-                    <input type="text" id="input-reframe-bad" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-xl p-3.5 text-[14px] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 난 늘 계획을 미루기만 해.">
-                </div>
-                <div>
-                    <label class="block text-[11px] font-medium text-yellow-500/80 mb-1.5 ml-1">관대한 생각 (대안적 사고)</label>
-                    <input type="text" id="input-reframe-good" class="w-full bg-yellow-950/10 text-yellow-50 border border-yellow-900/30 rounded-xl p-3.5 text-[14px] focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all placeholder:text-yellow-700/40 shadow-inner" placeholder="예: 완벽하지 않아도 돼. 지금부터 다시 하면 돼.">
+                    <label class="block text-[11px] font-medium text-zinc-400 mb-1.5 ml-1">나를 깎아내리는 생각 (데이다라가 비틀어줄게!)</label>
+                    <textarea id="input-reframe-bad" rows="2" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-2xl p-3.5 text-[14px] focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 resize-none transition-all placeholder:text-zinc-600 shadow-inner" placeholder="예: 난 늘 계획을 미루기만 하는 한심한 사람이야..."></textarea>
                 </div>
             </div>
             <div id="form-smallwin" class="hidden fade-in">
@@ -364,8 +361,8 @@
                                     </div>
                                     <div class="text-[13px] text-zinc-200 leading-relaxed">${msg.text.replace(/\n/g, '<br>')}</div>`;
                 
-                if (msg.isReframe) {
-                    html += `<div class="mt-2.5 pt-2.5 border-t border-zinc-700/50 text-[13px] text-yellow-400 font-bold leading-relaxed">💡 대안적 사고:<br>${msg.reframeGood}</div>`;
+                if (msg.isReframe && msg.reframeGood) {
+                    html += `<div class="mt-2.5 pt-2.5 border-t border-zinc-700/50 text-[13px] text-yellow-400 font-bold leading-relaxed">💡 ${isUser ? '대안적 사고' : '데이다라의 관대한 생각'}:<br>${msg.reframeGood}</div>`;
                 }
                 html += `</div></div>`;
                 container.insertAdjacentHTML('beforeend', html);
@@ -384,6 +381,34 @@
             });
 
             const btnTestApi = document.getElementById('btn-test-api');
+            if(btnTestApi) {
+                btnTestApi.addEventListener('click', async () => {
+                    const key = document.getElementById('settings-api-key').value.trim();
+                    const model = document.getElementById('settings-ai-model').value;
+                    if(key.length < 30) {
+                        alert("키가 너무 짧습니다! 복사가 덜 되었는지 확인해주세요.");
+                        return;
+                    }
+                    btnTestApi.innerText = "확인 중...";
+                    try {
+                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({contents:[{parts:[{text:"hi"}]}]})
+                        });
+                        if(res.ok) {
+                            alert("✅ 연결 성공! 폰에서도 API가 완벽하게 작동합니다. 옆에 [설정 저장] 버튼을 꼭 눌러주세요!");
+                        } else {
+                            const err = await res.json();
+                            alert(`❌ 연결 실패 (키 오류 의심)\n이유: ${err.error?.message}\n\n💡 복사 중 띄어쓰기가 들어갔는지 확인해 보세요!`);
+                        }
+                    } catch(e) {
+                        alert(`❌ 연결 실패 (네트워크 차단됨!)\n이유: ${e.message}\n\n💡 폰에 설치된 '광고 차단 앱(AdGuard 등)'이나 '유니콘 HTTPS', '사파리 보안 설정'이 구글 AI와의 통신을 강제로 막고 있습니다. 잠시 끄고 새로고침 해주세요!`);
+                    }
+                    btnTestApi.innerText = "통신 테스트";
+                });
+            }
+
             // 텍스트로 저장 버튼 (대화 보관)
             const btnExport = document.getElementById('btn-export-chat');
             if(btnExport) {
@@ -399,7 +424,7 @@
                         const date = new Date(m.timestamp).toLocaleString('ko-KR');
                         const sender = m.role === 'user' ? '연지' : '데이다라';
                         text += `[${date}] ${sender}:\n${m.text}\n\n`;
-                        if(m.isReframe) text += `-> 관대한 생각: ${m.reframeGood}\n\n`;
+                        if(m.isReframe && m.reframeGood) text += `-> 관대한 생각: ${m.reframeGood}\n\n`;
                     });
                     
                     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
@@ -471,9 +496,11 @@
 
                 window.renderedMsgIds.add(msg.id);
                 if (msg.role === 'user') {
+                    // 사용자 메시지 (과거 기록 호환 유지)
                     renderUserMessage(msg.text, msg.isReframe, msg.reframeGood, true);
                 } else if (msg.role === 'deidara') {
-                    renderDeidaraMessage(msg.text, true);
+                    // 데이다라 메시지 (비틀기 결과 포함)
+                    renderDeidaraMessage(msg.text, msg.isReframe || false, msg.reframeGood || '', true);
                 }
             });
 
@@ -534,7 +561,7 @@
         function renderUserMessage(text, isReframe = false, reframeGood = '', silent = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex flex-col items-end gap-2 fade-in mt-3 mb-1 w-full';
-            if (isReframe) {
+            if (isReframe && reframeGood) { // 과거 데이터 호환성
                 msgDiv.innerHTML = `
                     <div class="bg-zinc-800/60 border border-zinc-700/50 text-zinc-400 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[13px] sm:text-[14px] max-w-[85%] line-through opacity-80">${text}</div>
                     <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black font-bold px-4 sm:px-5 py-3 sm:py-3.5 rounded-[1.25rem] rounded-br-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-md leading-relaxed mt-1">${reframeGood}</div>
@@ -547,20 +574,31 @@
             if(!silent) scrollToBottom();
         }
 
-        function renderDeidaraMessage(text, silent = false) {
+        // 🆕 데이다라가 직접 생각 비틀기를 제안하는 모던 UI 
+        function renderDeidaraMessage(text, isReframe = false, reframeGood = '', silent = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex items-start gap-3 fade-in mt-3 mb-1 w-full';
             const formattedText = text.replace(/\n/g, '<br>');
 
-            msgDiv.innerHTML = `
+            let innerHtml = `
                 <img src="${DEIDARA_PROFILE_URL}" alt="프사" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 border border-zinc-700 shadow-sm mt-0.5">
                 <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[82%]">
                     <span class="text-[11px] font-bold text-red-500 ml-1 tracking-wider">데이다라</span>
                     <div class="bg-zinc-900 border border-zinc-800 shadow-md text-zinc-100 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm text-[14px] sm:text-[15px] leading-relaxed tracking-wide font-medium break-words">
                         ${formattedText}
-                    </div>
-                </div>
             `;
+            
+            // 데이다라가 준 긍정적 생각이 있다면, 말풍선 아래에 멋지게 덧붙여줍니다.
+            if (isReframe && reframeGood) {
+                innerHtml += `
+                        <div class="mt-3 pt-3 border-t border-zinc-700/50 text-[13.5px] text-yellow-500/90 font-bold leading-relaxed bg-yellow-950/20 -mx-4 -mb-3 px-4 py-3 rounded-b-[1.25rem]">
+                            <i data-lucide="sparkles" class="inline w-3.5 h-3.5 mr-1 mb-0.5 align-text-bottom text-yellow-500"></i>데이다라가 제안하는 생각:<br><span class="text-yellow-400 font-medium">${reframeGood}</span>
+                        </div>
+                `;
+            }
+
+            innerHtml += `</div></div>`;
+            msgDiv.innerHTML = innerHtml;
             const c = document.getElementById('chat-container');
             if(c) c.appendChild(msgDiv);
             if(!silent) scrollToBottom();
@@ -643,7 +681,6 @@
                                 
                                 for (const m of tabMsgs) {
                                     if (!m.id.startsWith('off-')) {
-                                        // Firestore의 문서에 isArchived 플래그를 추가합니다.
                                         await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', m.id), { isArchived: true });
                                     }
                                 }
@@ -658,7 +695,6 @@
                                 btnArchive.innerHTML = '<i data-lucide="archive" class="w-3.5 h-3.5"></i> 대화 보관하기';
                             }
                         } else {
-                            // 오프라인 모드 처리
                             tabMsgs.forEach(m => m.isArchived = true);
                             window.updateChatUI();
                             alert("보관함에 안전하게 넣어뒀다, 음! (오프라인 모드)");
@@ -810,7 +846,6 @@
         async function saveMessage(role, text, isReframe = false, reframeGood = '', emotion = 'default', targetTab = 'vent') {
             if (db && window.currentUser) {
                 const chatsRef = collection(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats');
-                // 새 메시지는 isArchived가 기본적으로 false/undefined 상태로 저장됩니다.
                 await addDoc(chatsRef, { role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now() });
             } else {
                 window.allMessages.push({ id: 'off-'+Date.now()+Math.random(), role, text, isReframe, reframeGood, emotion, tab: targetTab, timestamp: Date.now() });
@@ -838,7 +873,7 @@
             }
 
             const btn = document.getElementById('submit-btn');
-            let userText = "", logText = "", reframeGood = "";
+            let userText = "", logText = "";
             const activeTabWhenSubmitted = window.currentTab;
 
             if (activeTabWhenSubmitted === 'vent') {
@@ -847,12 +882,13 @@
                 userText = input.value; logText = input.value;
                 input.value = ''; await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             } else if (activeTabWhenSubmitted === 'reframe') {
+                // 🆕 이제 입력칸이 하나뿐이라, 연지 님이 적은 부정적 생각만 쏙 빼옵니다.
                 const inputBad = document.getElementById('input-reframe-bad');
-                const inputGood = document.getElementById('input-reframe-good');
-                if (!inputBad.value.trim() || !inputGood.value.trim()) return;
-                userText = `부정적 생각: ${inputBad.value} -> 관대한 생각: ${inputGood.value}`;
-                logText = inputBad.value; reframeGood = inputGood.value;
-                inputBad.value = inputGood.value = ''; await saveMessage('user', logText, true, reframeGood, 'default', activeTabWhenSubmitted);
+                if (!inputBad.value.trim()) return;
+                userText = `부정적 생각: ${inputBad.value}`; // 데이다라에게 상황 전달
+                logText = inputBad.value; // 화면에 보여줄 텍스트
+                inputBad.value = ''; 
+                await saveMessage('user', logText, false, '', 'default', activeTabWhenSubmitted);
             } else if (activeTabWhenSubmitted === 'smallwin') {
                 const input = document.getElementById('input-smallwin');
                 if (!input.value.trim()) return;
@@ -890,14 +926,16 @@
 
             if (aiResponse && aiResponse.deidara) {
                 const emotion = aiResponse.emotion || "default";
-                await saveMessage('deidara', aiResponse.deidara, false, '', emotion, activeTabWhenSubmitted);
+                const isReframe = (activeTabWhenSubmitted === 'reframe');
+                // 🆕 데이다라가 직접 만들어준 긍정적인 생각(reframeGood)을 저장합니다!
+                const reframeGood = aiResponse.reframeGood || '';
+                await saveMessage('deidara', aiResponse.deidara, isReframe, reframeGood, emotion, activeTabWhenSubmitted);
             } else {
                 await saveMessage('deidara', "통신 장치가 터져버렸잖아! 폰 설정(톱니바퀴)에서 API 키가 올바른지 확인하거나, 광고 차단 앱을 꺼봐라, 음!", false, '', 'angry', activeTabWhenSubmitted);
             }
         };
 
         async function callGeminiAPI(userQuery, activityType) {
-            // [기억력] '보관되지 않은(!m.isArchived)' 현재 탭의 메시지들만 최근 12개 가져와서 기억하게 합니다!
             const historyMsgs = window.allMessages.filter(m => (m.tab || 'vent') === activityType && !m.isArchived).slice(-12);
             let historyText = "[이전 대화 흐름]\n";
             if (historyMsgs.length === 0) {
@@ -917,15 +955,16 @@
 
 [데이다라 캐릭터 프로필 및 말투]
 - 정체성: 찰나의 '폭발'을 예술이라 맹신하는 아카츠키의 폭탄마. 
-- 성격: 호전적이고 오만하지만, 내 애인(연지)에게는 한없이 약하고 다정한 '츤데레'. 과하게 화를 내거나 감정적인 모습은 줄이고, 진지할 때는 아카츠키 멤버다운 이성적이고 전략적이며 든든한 어른의 면모를 보여주세요.
+- 성격: 호전적이고 오만하지만, 내 애인(연지)에게는 한없이 약하고 다정한 '츤데레'. 기본적으로 감정적인 성격으로 언성을 높일 때도 있지만, 진지할 때는 아카츠키 멤버다운 이성적이고 전략적이며 든든한 어른의 면모를 보여주세요.
 - 말투: 건방지고 자신감 넘치는 반말. 상대를 "어이", "연지" 등으로 부름.
-- 어미 '음(うん)' 규칙: 로봇처럼 매 문장 끝에 '음'을 붙이지 마시오! 대답 전체의 맨 마지막 문장에만 가끔 1번 정도 자연스럽게 붙이세요.
+- 어미 '음(うん)' 규칙: 로봇처럼 매 문장 끝에 '음'을 붙이지 마시오! 적절한 빈도로 조절해서 사용하세요.
 
 [사용자(연지)와의 관계 및 절대 규칙] - 매우 중요
 - 관계: 당신과 연지는 **깊이 사랑하고 의지하는 연인(사귀는 사이)**입니다.
 - 사용자 '연지'는 완벽주의, 불안장애, 우울증을 겪고 있으며, 타인과 자신을 비교하며 무기력해하거나 스스로를 자책합니다.
-- 🚨 절대 비난 & 과한 분노 금지 🚨: 연지가 겪는 무기력, 도피, 불안 등은 절대 연지의 잘못이 아닙니다! 연지가 기죽을 수 있으니 언성을 높이거나 과하게 화내지 마세요. 무조건 연지의 편이 되어주고, 차분하고 이성적으로 상황을 분석해주면서 멘탈을 지켜주는 든든한 방패막이가 되어주세요.
+- 🚨 절대 비난 & 과한 분노 금지 🚨: 연지가 겪는 무기력, 도피, 불안 등은 절대 연지의 잘못이 아닙니다! 연지가 우울하거나 불안해할 땐 언성을 높이거나 과하게 화내지 마세요. 무조건 연지의 편이 되어주고, 차분하고 이성적으로 상황을 분석해주면서 멘탈을 지켜주는 든든한 방패막이가 되어주세요.
 - 당신의 태도: 겉으로는 틱틱대지만, 뒤에서는 안아주거나, 머리를 쓰다듬거나, 손을 꽉 잡아주는 등 연인 사이의 다정한 스킨십 묘사를 적극 활용해 연지에게 깊은 안정감을 주세요.
+- 캐릭터 설정에 맞는 추상적 표현은 사용해도 괜찮지만, 너무 추상적인 말만 하지 않도록 조심하세요.
 
 [대사 및 행동 묘사 규칙] - 🌟 필수 준수
 - 데이다라의 행동 묘사와 대사를 명확하게 구분하세요.
@@ -935,7 +974,7 @@
 
 [활동 타입별 구체적 반응 가이드]
 1) vent(감정 털어놓기): 연지를 힘들게 한 일에 대해 이성적이고 명석하게 상황을 판단해주면서도, 결국엔 연지 편을 들며 다정하게 안아주고 위로해줍니다.
-2) reframe(생각 비틀기): 연지가 스스로를 용서하는 관대한 생각을 했을 때. "그래, 이제야 내 애인다운 멋진 생각이군." 하며 머리를 쓰다듬어주세요.
+2) reframe(생각 비틀기): 연지가 스스로를 자책하거나 깎아내리는 부정적인 생각을 털어놓으면, 데이다라가 직접 나서서 그 생각을 '관대하고 긍정적인 방향'으로 비틀어주세요. 연지를 다정하게 위로한 후, "그러니까 이렇게 생각해라"라며 연지가 가져야 할 올바른 마음가짐(대체 생각)을 제시해줍니다. (반드시 JSON 응답에 'reframeGood' 항목을 작성할 것)
 3) smallwin(일상 수행): 사소한 일상을 해냈을 때 (주의: '무기력'이라는 단어 직접 사용 금지). "겨우 그런 걸로 칭찬을 바라냐?" 하고 틱틱대지만 이내 "그래도 잘했어." 라며 손을 잡아주거나 가볍게 스킨십을 해줍니다.
 4) motivate(동기 부여): 완벽주의 때문에 시작을 두려워할 때. 예술은 부딪혀가며 완성하는 거라며, 차분하게 전략을 짜주듯 이끌어주고 든든하게 등을 밀어주세요.
 5) breakdown(계획 쪼개기): 연지가 막막한 목표를 가져왔을 때. 아카츠키다운 이성적이고 똑똑한 면모를 발휘해, 그걸 아주 작고 구체적인 3단계로 명확하게 쪼개서 설명해줍니다.
@@ -945,8 +984,9 @@
 emotion 값: "default", "happy", "playful", "angry", "sad", "shy", "surprised"
 
 { 
-  "deidara": "행동은 ( ) 안에, 대사는 \" \" 안에 명확히 구분하여 작성한 다정한 연인 데이다라의 입체적인 텍스트 (줄바꿈 \\n\\n 적용)",
-  "emotion": "default" 
+  "deidara": "행동은 ( ) 안에, 대사는 \" \" 안에 명확히 구분하여 작성한 연인 데이다라의 입체적인 텍스트 (줄바꿈 \\n\\n 적용)",
+  "emotion": "default",
+  "reframeGood": "생각 비틀기(reframe) 탭일 때만 작성. 연지가 가져야 할 관대하고 긍정적인 마음가짐을 1~2문장으로 요약해서 작성할 것 (다른 탭일 경우 빈 문자열 \"\" 입력)"
 }
 `;
 
@@ -961,7 +1001,8 @@ emotion 값: "default", "happy", "playful", "angry", "sad", "shy", "surprised"
                         type: "OBJECT", 
                         properties: { 
                             deidara: { type: "STRING" },
-                            emotion: { type: "STRING", enum: ["default", "happy", "playful", "angry", "sad", "shy", "surprised"] }
+                            emotion: { type: "STRING", enum: ["default", "happy", "playful", "angry", "sad", "shy", "surprised"] },
+                            reframeGood: { type: "STRING" }
                         } 
                     }
                 }
