@@ -1,11 +1,11 @@
 {
   "name": "아지트",
   "short_name": "아지트",
-  "description": "완벽주의와 무기력을 날려버리는 데이다라와의 채팅 앱",
+  "description": "데이다라와의 멘탈 케어 비밀 공간",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#ef4444",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
   "icons": [
     {
       "src": "./icon-192x192.png",
@@ -18,5 +18,4 @@
       "type": "image/png"
     }
   ]
-
 }
