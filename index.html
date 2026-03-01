@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta name="robots" content="noindex, nofollow">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
+    <!-- 🚫 검색 엔진 노출 차단 (비밀 아지트 보호) 🚫 -->
+    <meta name="robots" content="noindex, nofollow">
+    
     <!-- PWA -->
+    <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#09090b">
     <link rel="apple-touch-icon" href="./icon-192x192.png">
 
@@ -55,7 +58,7 @@
     <!-- 구글 로그인 오버레이 -->
     <div id="login-overlay" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center transition-opacity duration-500 overflow-y-auto hidden">
         <img id="login-profile" src="" class="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-4 border-red-600 shadow-[0_0_30px_rgba(220,38,38,0.5)] mb-6 object-cover" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'">
-        <h2 class="text-2xl font-extrabold text-yellow-400 mb-2">마음 아지트 연결 중...</h2>
+        <h2 class="text-2xl font-extrabold text-yellow-400 mb-2">아지트 연결 중...</h2>
         
         <p class="text-zinc-400 text-sm mb-6 max-w-xs leading-relaxed">
             PC와 모바일 동기화를 위해 구글 로그인이 필요하다. 딴 데 한눈팔지 말고 얼른 로그인해라, 음!
@@ -199,7 +202,7 @@
                 <button onclick="window.switchTab('reframe')" id="tab-reframe" class="tab-btn snap-start">생각 비틀기</button>
                 <button onclick="window.switchTab('smallwin')" id="tab-smallwin" class="tab-btn snap-start">일상 수행</button>
                 <button onclick="window.switchTab('motivate')" id="tab-motivate" class="tab-btn snap-start">동기 부여</button>
-                <button onclick="window.switchTab('breakdown')" id="tab-breakdown" class="tab-btn snap-start flex items-center gap-1.5 pr-3">계획 쪼개기 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-yellow-500"></i></button>
+                <button onclick="window.switchTab('breakdown')" id="tab-breakdown" class="tab-btn snap-start">계획 쪼개기</button>
             </nav>
         </div>
 
@@ -381,31 +384,31 @@
             });
 
             const btnTestApi = document.getElementById('btn-test-api');
-            if(btnTestApi) {
-                btnTestApi.addEventListener('click', async () => {
-                    const key = document.getElementById('settings-api-key').value.trim();
-                    const model = document.getElementById('settings-ai-model').value;
-                    if(key.length < 30) {
-                        alert("키가 너무 짧습니다! 복사가 덜 되었는지 확인해주세요.");
+            // 텍스트로 저장 버튼 (대화 보관)
+            const btnExport = document.getElementById('btn-export-chat');
+            if(btnExport) {
+                btnExport.addEventListener('click', () => {
+                    const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === window.currentTab);
+                    if (tabMsgs.length === 0) {
+                        alert("저장할 대화가 없다, 음!");
                         return;
                     }
-                    btnTestApi.innerText = "확인 중...";
-                    try {
-                        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-                            method: 'POST',
-                            headers: {'Content-Type': 'application/json'},
-                            body: JSON.stringify({contents:[{parts:[{text:"hi"}]}]})
-                        });
-                        if(res.ok) {
-                            alert("✅ 연결 성공! 폰에서도 API가 완벽하게 작동합니다. 옆에 [설정 저장] 버튼을 꼭 눌러주세요!");
-                        } else {
-                            const err = await res.json();
-                            alert(`❌ 연결 실패 (키 오류 의심)\n이유: ${err.error?.message}\n\n💡 복사 중 띄어쓰기가 들어갔는지 확인해 보세요!`);
-                        }
-                    } catch(e) {
-                        alert(`❌ 연결 실패 (네트워크 차단됨!)\n이유: ${e.message}\n\n💡 폰에 설치된 '광고 차단 앱(AdGuard 등)'이나 '유니콘 HTTPS', '사파리 보안 설정'이 구글 AI와의 통신을 강제로 막고 있습니다. 잠시 끄고 새로고침 해주세요!`);
-                    }
-                    btnTestApi.innerText = "통신 테스트";
+                    
+                    let text = `--- 아지트 [${window.currentTab}] 대화 기록 ---\n\n`;
+                    tabMsgs.forEach(m => {
+                        const date = new Date(m.timestamp).toLocaleString('ko-KR');
+                        const sender = m.role === 'user' ? '연지' : '데이다라';
+                        text += `[${date}] ${sender}:\n${m.text}\n\n`;
+                        if(m.isReframe) text += `-> 관대한 생각: ${m.reframeGood}\n\n`;
+                    });
+                    
+                    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `아지트_대화기록_${window.currentTab}_${new Date().getTime()}.txt`;
+                    a.click();
+                    URL.revokeObjectURL(url);
                 });
             }
 
@@ -993,7 +996,3 @@ emotion 값: "default", "happy", "playful", "angry", "sad", "shy", "surprised"
     </script>
 </body>
 </html>
-
-
-
-
