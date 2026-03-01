@@ -110,7 +110,7 @@
                     <p id="settings-key-status" class="text-left text-[11px] text-red-400 mt-3 hidden bg-red-950/30 p-2 rounded-lg border border-red-900/30">올바른 키를 입력해라, 음!</p>
                 </div>
 
-                <!-- 🆕 대화 관리 (앱 내 보관함 기능 & 명대사 찜) -->
+                <!-- 🆕 대화 관리 -->
                 <div class="bg-black/40 p-4 rounded-2xl border border-zinc-800/80 shadow-inner">
                     <label class="block text-left text-[11px] text-zinc-400 mb-2 font-medium">대화 관리</label>
                     <div class="grid grid-cols-2 gap-2 mb-2">
@@ -121,7 +121,7 @@
                             <i data-lucide="library" class="w-3.5 h-3.5"></i> 보관함 보기
                         </button>
                     </div>
-                    <!-- ❤️ 나의 예술품 보관함 버튼 추가 -->
+                    <!-- ❤️ 나의 예술품 보관함 버튼 -->
                     <button onclick="window.openFavoritesModal()" class="w-full bg-pink-950/30 hover:bg-pink-900/40 text-pink-400 text-[12px] px-3 py-2.5 rounded-xl transition-colors border border-pink-900/30 shadow-sm flex items-center justify-center gap-1.5 font-bold mt-1">
                         <i data-lucide="heart" class="w-3.5 h-3.5 fill-pink-500/20"></i> 나의 예술품 (찜한 대사)
                     </button>
@@ -222,7 +222,7 @@
                 </div>
             </div>
             
-            <!-- 🚨 우측 상단 긴급 SOS 버튼 추가 -->
+            <!-- 🚨 우측 상단 긴급 SOS 버튼 -->
             <button onclick="window.handleSOS()" class="bg-red-950/60 border border-red-900/50 hover:bg-red-900/80 text-red-400 px-3.5 py-2 rounded-full text-[11px] font-extrabold flex items-center gap-1.5 transition-colors shadow-sm active:scale-95">
                 <i data-lucide="life-buoy" class="w-3.5 h-3.5"></i> 긴급 SOS
             </button>
@@ -293,6 +293,7 @@
         </div>
     </div>
 
+    <!-- UI 동작을 위한 기본 스크립트 -->
     <script>
         function getSafeLocal(key, def) { try { return localStorage.getItem(key) || def; } catch(e) { return def; } }
         function setSafeLocal(key, val) { try { localStorage.setItem(key, val); } catch(e) { console.warn("저장 차단됨"); } }
@@ -327,7 +328,6 @@
         // 텍스트 포맷팅 도우미 (행동 지문을 회색 이탤릭체로 변경)
         window.formatChatText = function(text) {
             if (!text) return '';
-            // 줄바꿈 처리 후, ( ) 안의 텍스트를 회색 이탤릭체 <span>으로 감쌉니다.
             let formatted = text.replace(/\n/g, '<br>');
             formatted = formatted.replace(/\(([^)]+)\)/g, '<span class="text-zinc-500 italic font-medium">($1)</span>');
             return formatted;
@@ -504,7 +504,7 @@
                     }
                 });
             });
-            // ... 기존 통신테스트 및 저장버튼 (생략 없이 원본 유지)
+            
             const btnTestApi = document.getElementById('btn-test-api');
             if(btnTestApi) {
                 btnTestApi.addEventListener('click', async () => {
@@ -568,9 +568,8 @@
 
                 window.renderedMsgIds.add(msg.id);
                 if (msg.role === 'user') {
-                    renderUserMessage(msg.text, msg.isReframe, msg.reframeGood, true);
+                    renderUserMessage(msg.text, msg.isReframe, msg.reframeGood, true, msg.id);
                 } else if (msg.role === 'deidara') {
-                    // ❤️ 찜 상태(isFavorite)와 msg.id를 함께 전달
                     renderDeidaraMessage(msg.text, msg.isReframe || false, msg.reframeGood || '', true, msg.id, msg.isFavorite || false);
                 }
             });
@@ -691,29 +690,38 @@
             window.updateIconsSafely();
         }
 
+        // 복구된 로딩 애니메이션 및 이미지 변경 기능
         function showLoading() {
-        // 🗑️ 단일 메시지 삭제 (보관함/찜한 대사/채팅방에서 개별 삭제)
-        window.deleteSingleMessage = async function(msgId) {
-            if (!confirm("이 기록을 완전히 지워버릴 거냐, 음?")) return;
-            
-            if (db && window.currentUser && !msgId.startsWith('off-')) {
-                try {
-                    await deleteDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId));
-                } catch(e) { 
-                    console.error("Delete Single Msg Error: ", e); 
-                    alert("지우는 중에 에러가 났다, 음!"); 
-                }
-            } else {
-                window.allMessages = window.allMessages.filter(m => m.id !== msgId);
-                window.updateChatUI();
-                const archiveModal = document.getElementById('archive-modal');
-                if (archiveModal && !archiveModal.classList.contains('hidden')) window.renderArchive();
-                const favModal = document.getElementById('favorites-modal');
-                if (favModal && !favModal.classList.contains('hidden')) window.renderFavorites();
-            }
-        };
+            const loadingId = 'loading-' + Date.now();
+            const msgDiv = document.createElement('div');
+            msgDiv.id = loadingId;
+            msgDiv.className = 'flex items-start gap-3 fade-in mt-3 mb-1';
+            msgDiv.innerHTML = `
+                <img src="${DEIDARA_PROFILE_URL}" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 border border-zinc-700 opacity-50 grayscale mt-0.5">
+                <div class="bg-zinc-900 border border-zinc-800 shadow-sm px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm flex gap-2 items-center h-[46px]">
+                    <div class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                    <div class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                    <div class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                </div>
+            `;
+            const c = document.getElementById('chat-container');
+            if(c) c.appendChild(msgDiv);
+            scrollToBottom();
+            return loadingId;
+        }
 
-        // ✏️ 연지 메시지 수정 로직
+        function removeLoading(id) { const el = document.getElementById(id); if (el) el.remove(); }
+
+        function updateStandingImage(emotion) {
+            const imgElement = document.getElementById('ui-standing');
+            if(!imgElement) return;
+            const targetSrc = DEIDARA_STANDING_IMAGES[emotion] || DEIDARA_STANDING_IMAGES["default"];
+            if(imgElement.src.includes(targetSrc.replace('https://', ''))) return;
+            imgElement.style.opacity = 0;
+            setTimeout(() => { imgElement.src = targetSrc; imgElement.style.opacity = 1; }, 300);
+        }
+
+        // ✏️ 연지 메시지 수정 모달 UI 로직
         window.currentEditId = null;
         window.editUserMsg = function(msgId) {
             const msg = window.allMessages.find(m => m.id === msgId);
@@ -738,6 +746,76 @@
             window.currentEditId = null;
         };
 
+    </script>
+
+    <!-- Firebase 통신 및 서버 기능 통합 스크립트 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
+            authDomain: "deidara-70f6e.firebaseapp.com",
+            projectId: "deidara-70f6e",
+            storageBucket: "deidara-70f6e.firebasestorage.app",
+            messagingSenderId: "183278137031",
+            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
+            measurementId: "G-48XSYZ5F6L"
+        };
+
+        let app, auth, db, provider;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            provider = new GoogleAuthProvider();
+        } catch(e) { console.error("Firebase 로드 실패"); }
+        
+        const appId = 'deidara-mind-app'; 
+
+        // ❤️ 찜(Favorite) 토글 기능 구현
+        window.toggleFavorite = async function(msgId) {
+            const msgIndex = window.allMessages.findIndex(m => m.id === msgId);
+            if (msgIndex === -1) return;
+            
+            const newFavStatus = !window.allMessages[msgIndex].isFavorite;
+            window.allMessages[msgIndex].isFavorite = newFavStatus;
+            
+            window.updateChatUI();
+            
+            const favModal = document.getElementById('favorites-modal');
+            if (favModal && !favModal.classList.contains('hidden')) window.renderFavorites();
+
+            if (db && window.currentUser && !msgId.startsWith('off-')) {
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { isFavorite: newFavStatus });
+                } catch(e) { console.error("Favorite Error: ", e); }
+            }
+        };
+
+        // 🗑️ 단일 메시지 삭제 (보관함/찜한 대사/채팅방에서 개별 삭제)
+        window.deleteSingleMessage = async function(msgId) {
+            if (!confirm("이 기록을 완전히 지워버릴 거냐, 음?")) return;
+            
+            if (db && window.currentUser && !msgId.startsWith('off-')) {
+                try {
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId));
+                } catch(e) { 
+                    console.error("Delete Single Msg Error: ", e); 
+                    alert("지우는 중에 에러가 났다, 음!"); 
+                }
+            } else {
+                window.allMessages = window.allMessages.filter(m => m.id !== msgId);
+                window.updateChatUI();
+                const archiveModal = document.getElementById('archive-modal');
+                if (archiveModal && !archiveModal.classList.contains('hidden')) window.renderArchive();
+                const favModal = document.getElementById('favorites-modal');
+                if (favModal && !favModal.classList.contains('hidden')) window.renderFavorites();
+            }
+        };
+
+        // ✏️ 연지 메시지 실제 저장 (DB 연동)
         window.saveEdit = async function() {
             const newTextRaw = document.getElementById('edit-textarea').value.trim();
             if(!newTextRaw) return;
@@ -773,10 +851,8 @@
             const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === activityType && !m.isArchived);
             const msgIndex = tabMsgs.findIndex(m => m.id === msgId);
 
-            // 해당 대답의 직전까지의 대화 흐름 12개 추출
             const historyMsgs = tabMsgs.slice(0, msgIndex).slice(-12);
 
-            // 해당 대답 직전의 연지 질문 찾기
             let lastUserQuery = "(재생성 요청)";
             for(let i = msgIndex - 1; i >= 0; i--) {
                 if(tabMsgs[i].role === 'user') {
@@ -787,7 +863,6 @@
 
             const originalText = targetMsg.text;
             
-            // 로딩 처리 (화면 텍스트를 임시 변경)
             if (db && window.currentUser && !msgId.startsWith('off-')) {
                 await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { text: "새로운 폭발을 준비 중이다, 음... 💣 (생각 중)" });
             } else {
@@ -795,7 +870,6 @@
                 window.updateChatUI();
             }
 
-            // AI 호출
             const aiResponse = await callGeminiAPI(lastUserQuery, activityType, historyMsgs);
 
             if (aiResponse && aiResponse.deidara) {
@@ -812,7 +886,6 @@
                     window.updateChatUI();
                 }
             } else {
-                // 실패 시 원래 텍스트로 복구
                 if (db && window.currentUser && !msgId.startsWith('off-')) {
                     await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { text: originalText });
                 } else {
@@ -835,7 +908,6 @@
                 alert("구글 로그인을 먼저 진행해주세요!"); return;
             }
 
-            // 가장 위로가 되는 감정 털어놓기(vent) 방으로 강제 이동
             window.switchTab('vent');
             
             const userText = "(극도로 불안하고 힘든 상태... 긴급 위로를 원함)";
@@ -852,7 +924,6 @@
             await saveMessage('user', logText, false, '', 'default', 'vent');
             const loadingId = window.showLoading();
             
-            // SOS 특수 모드로 AI 호출
             const aiResponse = await callGeminiAPI(userText, 'sos');
             window.removeLoading(loadingId);
             
@@ -864,7 +935,7 @@
             }
 
             if (aiResponse && aiResponse.deidara) {
-                const emotion = aiResponse.emotion || "sad"; // SOS일 때는 보통 눈물(sad)이나 부끄러움(shy)이 적절
+                const emotion = aiResponse.emotion || "sad";
                 await saveMessage('deidara', aiResponse.deidara, false, '', emotion, 'vent');
             } else {
                 await saveMessage('deidara', "통신 장치가 터져버렸잖아! 폰 설정(톱니바퀴)에서 API 키가 올바른지 확인하거나, 광고 차단 앱을 꺼봐라, 음!", false, '', 'angry', 'vent');
@@ -1050,7 +1121,7 @@
             }
         };
 
-        // 🔥 파라미터에 customHistoryMsgs 추가
+        // 🔥 AI 통신 모듈
         async function callGeminiAPI(userQuery, activityType, customHistoryMsgs = null) {
             const historyMsgs = customHistoryMsgs || window.allMessages.filter(m => (m.tab || 'vent') === activityType && !m.isArchived).slice(-12);
             let historyText = "[이전 대화 흐름]\n";
@@ -1137,7 +1208,7 @@ emotion 값: "default", "happy", "playful", "angry", "sad", "shy", "surprised"
                 } catch (error) {
                     console.error("Gemini API Error:", error);
                     if (i === delays.length - 1) {
-                        alert(`🚨 API 통신 오류 발생!\n\n오류 내용: ${error.message}\n\n💡 [중요] 아이폰 사파리의 '추적 방지' 기능이나, 폰에 설치된 '광고 차단 앱(AdGuard 등)', 유니콘 HTTPS 같은 우회 앱이 구글 서버 통신을 막고 있을 확률이 99%입니다! 잠시 끄고 탭을 새로고침해 보세요.`);
+                        alert(`🚨 API 통신 오류 발생!\n\n오류 내용: ${error.message}\n\n💡 [중요] 폰에 설치된 '광고 차단 앱(AdGuard 등)', 유니콘 HTTPS 같은 우회 앱이 통신을 막고 있을 확률이 99%입니다! 잠시 끄고 새로고침해 보세요.`);
                         return null;
                     }
                     await new Promise(r => setTimeout(r, delays[i]));
