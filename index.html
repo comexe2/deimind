@@ -187,6 +187,20 @@
         </div>
     </div>
 
+    <!-- ✏️ 메시지 수정 모달 -->
+    <div id="edit-modal" class="fixed inset-0 z-[80] bg-black/90 backdrop-blur-md hidden flex-col items-center justify-center p-4 sm:p-6 transition-opacity">
+        <div class="bg-zinc-950 border border-zinc-700 rounded-3xl w-full max-w-md p-6 relative shadow-[0_0_50px_rgba(0,0,0,0.8)] fade-in flex flex-col">
+            <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <i data-lucide="edit-2" class="w-5 h-5 text-zinc-400"></i> 내가 보낸 말 수정하기
+            </h3>
+            <textarea id="edit-textarea" rows="4" class="w-full bg-zinc-900 text-zinc-100 border border-zinc-800 rounded-xl p-3.5 text-[14px] focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 resize-none mb-4 shadow-inner"></textarea>
+            <div class="flex gap-2">
+                <button onclick="window.saveEdit()" class="flex-1 bg-red-600 hover:bg-red-500 text-white py-2.5 rounded-xl font-bold transition-colors shadow-md">저장하기</button>
+                <button onclick="window.closeEdit()" class="flex-1 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 py-2.5 rounded-xl font-bold transition-colors">취소</button>
+            </div>
+        </div>
+    </div>
+
     <!-- App Container (메인 UI) -->
     <div class="bg-zinc-950 w-full max-w-md sm:rounded-[2.5rem] shadow-none sm:shadow-[0_0_50px_rgba(220,38,38,0.15)] overflow-hidden flex flex-col h-[100dvh] sm:h-[90vh] sm:max-h-[850px] border-0 sm:border border-zinc-800 relative">
         
@@ -417,8 +431,11 @@
                 const align = isUser ? 'items-end' : 'items-start';
                 
                 let html = `<div class="flex flex-col ${align} w-full mb-3">
-                                <div class="p-3.5 rounded-2xl w-[90%] ${bg}">
-                                    <div class="text-[10px] font-extrabold ${color} mb-1.5 flex items-center gap-1">
+                                <div class="p-3.5 rounded-2xl w-[90%] ${bg} relative">
+                                    <button onclick="window.deleteSingleMessage('${msg.id}')" class="absolute top-3.5 right-3 text-zinc-500 hover:text-red-500 transition-colors outline-none">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                    <div class="text-[10px] font-extrabold ${color} mb-1.5 flex items-center gap-1 pr-6">
                                         ${isUser ? '<i data-lucide="user" class="w-3 h-3"></i>' : '<i data-lucide="flame" class="w-3 h-3"></i>'} ${sender}
                                     </div>
                                     <div class="text-[13px] text-zinc-200 leading-relaxed">${window.formatChatText(msg.text)}</div>`;
@@ -458,9 +475,14 @@
                 let html = `<div class="bg-zinc-900/60 border border-pink-900/30 p-4 rounded-2xl relative shadow-sm">
                                 <div class="flex justify-between items-start mb-2.5">
                                     <div class="text-[10px] text-zinc-500">${dateString}</div>
-                                    <button onclick="window.toggleFavorite('${msg.id}')" class="text-pink-500 outline-none hover:scale-110 transition-transform">
-                                        <i data-lucide="heart" class="w-4 h-4 fill-pink-500"></i>
-                                    </button>
+                                    <div class="flex items-center gap-3">
+                                        <button onclick="window.toggleFavorite('${msg.id}')" class="text-pink-500 outline-none hover:scale-110 transition-transform">
+                                            <i data-lucide="heart" class="w-4 h-4 fill-pink-500"></i>
+                                        </button>
+                                        <button onclick="window.deleteSingleMessage('${msg.id}')" class="text-zinc-600 hover:text-red-500 outline-none transition-colors">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="text-[14px] text-zinc-100 leading-relaxed font-medium">${window.formatChatText(msg.text)}</div>`;
                 if (msg.isReframe && msg.reframeGood) {
@@ -594,22 +616,37 @@
 
         function scrollToBottom() { const c = document.getElementById('chat-container'); if(c) c.scrollTo({ top: c.scrollHeight, behavior: 'smooth' }); }
 
-        function renderUserMessage(text, isReframe = false, reframeGood = '', silent = false) {
+        function renderUserMessage(text, isReframe = false, reframeGood = '', silent = false, id = null) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex flex-col items-end gap-2 fade-in mt-3 mb-1 w-full';
             if (isReframe && reframeGood) { 
                 msgDiv.innerHTML = `
                     <div class="bg-zinc-800/60 border border-zinc-700/50 text-zinc-400 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[13px] sm:text-[14px] max-w-[85%] line-through opacity-80">${window.formatChatText(text)}</div>
-                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black font-bold px-4 sm:px-5 py-3 sm:py-3.5 rounded-[1.25rem] rounded-br-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-md leading-relaxed mt-1">${reframeGood}</div>`;
+                    <div class="bg-gradient-to-br from-yellow-500 to-yellow-600 text-black font-bold px-4 sm:px-5 py-3 sm:py-3.5 rounded-[1.25rem] rounded-br-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-md leading-relaxed mt-1 relative group">
+                        ${reframeGood}
+                        ${id ? `
+                        <div class="flex justify-end gap-3 mt-2 border-t border-yellow-700/30 pt-2 opacity-50 hover:opacity-100 transition-opacity">
+                            <button onclick="window.editUserMsg('${id}')" class="hover:text-white transition-colors flex items-center gap-1 text-[11px]"><i data-lucide="edit-2" class="w-3 h-3"></i> 수정</button>
+                            <button onclick="window.deleteSingleMessage('${id}')" class="hover:text-red-900 transition-colors flex items-center gap-1 text-[11px]"><i data-lucide="trash-2" class="w-3 h-3"></i> 삭제</button>
+                        </div>` : ''}
+                    </div>`;
             } else {
-                msgDiv.innerHTML = `<div class="bg-red-950/40 border border-red-900/50 text-red-50 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-sm leading-relaxed tracking-wide">${window.formatChatText(text)}</div>`;
+                msgDiv.innerHTML = `<div class="bg-red-950/40 border border-red-900/50 text-red-50 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tr-sm text-[14px] sm:text-[15px] max-w-[85%] shadow-sm leading-relaxed tracking-wide relative group">
+                    <div class="mb-1">${window.formatChatText(text)}</div>
+                    ${id ? `
+                    <div class="flex justify-end gap-3 mt-2 border-t border-red-900/50 pt-2 opacity-50 hover:opacity-100 transition-opacity">
+                        <button onclick="window.editUserMsg('${id}')" class="hover:text-white transition-colors flex items-center gap-1 text-[11px]"><i data-lucide="edit-2" class="w-3 h-3"></i> 수정</button>
+                        <button onclick="window.deleteSingleMessage('${id}')" class="hover:text-red-400 transition-colors flex items-center gap-1 text-[11px]"><i data-lucide="trash-2" class="w-3 h-3"></i> 삭제</button>
+                    </div>` : ''}
+                </div>`;
             }
             const c = document.getElementById('chat-container');
             if(c) c.appendChild(msgDiv);
             if(!silent) scrollToBottom();
+            window.updateIconsSafely();
         }
 
-        // ❤️ 데이다라 메시지에 하트(찜) 버튼 추가
+        // ❤️ 데이다라 메시지에 하트(찜), 재생성, 삭제 버튼 추가
         function renderDeidaraMessage(text, isReframe = false, reframeGood = '', silent = false, id = null, isFavorite = false) {
             const msgDiv = document.createElement('div');
             msgDiv.className = 'flex items-start gap-3 fade-in mt-3 mb-1 w-full';
@@ -619,12 +656,21 @@
                 <img src="${DEIDARA_PROFILE_URL}" alt="프사" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 border border-zinc-700 shadow-sm mt-0.5">
                 <div class="flex flex-col gap-1 max-w-[85%] sm:max-w-[82%] relative w-full">
                     
-                    <!-- 이름 및 하트 버튼 영역 (말풍선 밖으로 분리) -->
+                    <!-- 이름 및 기능 버튼 영역 (말풍선 밖) -->
                     <div class="flex justify-between items-center w-full pl-1 pr-2 mb-0.5">
                         <span class="text-[11px] font-bold text-red-500 tracking-wider">데이다라</span>
-                        ${id ? `<button onclick="window.toggleFavorite('${id}')" class="text-zinc-600 hover:text-pink-500 hover:scale-110 transition-all outline-none flex items-center">
-                            <i data-lucide="heart" class="w-3.5 h-3.5 ${isFavorite ? 'text-pink-500 fill-pink-500' : ''}"></i>
-                        </button>` : ''}
+                        <div class="flex items-center gap-3">
+                            ${id ? `
+                            <button onclick="window.regenerateMsg('${id}')" class="text-zinc-600 hover:text-blue-400 transition-all outline-none flex items-center" title="다른 대답 듣기 (재생성)">
+                                <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="window.deleteSingleMessage('${id}')" class="text-zinc-600 hover:text-red-500 transition-all outline-none flex items-center" title="삭제">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <button onclick="window.toggleFavorite('${id}')" class="text-zinc-600 hover:text-pink-500 hover:scale-110 transition-all outline-none flex items-center" title="찜하기">
+                                <i data-lucide="heart" class="w-3.5 h-3.5 ${isFavorite ? 'text-pink-500 fill-pink-500' : ''}"></i>
+                            </button>` : ''}
+                        </div>
                     </div>
 
                     <div class="bg-zinc-900 border border-zinc-800 shadow-md text-zinc-100 px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm text-[14px] sm:text-[15px] leading-relaxed tracking-wide font-medium break-words">
@@ -646,81 +692,134 @@
         }
 
         function showLoading() {
-            const loadingId = 'loading-' + Date.now();
-            const msgDiv = document.createElement('div');
-            msgDiv.id = loadingId;
-            msgDiv.className = 'flex items-start gap-3 fade-in mt-3 mb-1';
-            msgDiv.innerHTML = `
-                <img src="${DEIDARA_PROFILE_URL}" onerror="this.src='https://ui-avatars.com/api/?name=D&background=ef4444&color=facc15&bold=true'" class="w-9 h-9 sm:w-10 sm:h-10 rounded-full object-cover shrink-0 border border-zinc-700 opacity-50 grayscale mt-0.5">
-                <div class="bg-zinc-900 border border-zinc-800 shadow-sm px-4 sm:px-5 py-3 rounded-[1.25rem] rounded-tl-sm flex gap-2 items-center h-[46px]">
-                    <div class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                    <div class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                    <div class="w-1.5 h-1.5 bg-zinc-500 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
-                </div>
-            `;
-            const c = document.getElementById('chat-container');
-            if(c) c.appendChild(msgDiv);
-            scrollToBottom();
-            return loadingId;
-        }
-
-        function removeLoading(id) { const el = document.getElementById(id); if (el) el.remove(); }
-
-        function updateStandingImage(emotion) {
-            const imgElement = document.getElementById('ui-standing');
-            if(!imgElement) return;
-            const targetSrc = DEIDARA_STANDING_IMAGES[emotion] || DEIDARA_STANDING_IMAGES["default"];
-            if(imgElement.src.includes(targetSrc.replace('https://', ''))) return;
-            imgElement.style.opacity = 0;
-            setTimeout(() => { imgElement.src = targetSrc; imgElement.style.opacity = 1; }, 300);
-        }
-
-    </script>
-
-    <!-- Firebase 모듈 -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyDA-l-otOgxEJHS4nndJg-G9IYKlf-1T3I",
-            authDomain: "deidara-70f6e.firebaseapp.com",
-            projectId: "deidara-70f6e",
-            storageBucket: "deidara-70f6e.firebasestorage.app",
-            messagingSenderId: "183278137031",
-            appId: "1:183278137031:web:8fbc89a6b70946c794d8e2",
-            measurementId: "G-48XSYZ5F6L"
-        };
-
-        let app, auth, db, provider;
-        try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-            provider = new GoogleAuthProvider();
-        } catch(e) { console.error("Firebase 로드 실패"); }
-        const appId = 'deidara-mind-app'; 
-
-        // ❤️ 찜(Favorite) 토글 기능 구현
-        window.toggleFavorite = async function(msgId) {
-            const msgIndex = window.allMessages.findIndex(m => m.id === msgId);
-            if (msgIndex === -1) return;
+        // 🗑️ 단일 메시지 삭제 (보관함/찜한 대사/채팅방에서 개별 삭제)
+        window.deleteSingleMessage = async function(msgId) {
+            if (!confirm("이 기록을 완전히 지워버릴 거냐, 음?")) return;
             
-            const newFavStatus = !window.allMessages[msgIndex].isFavorite;
-            window.allMessages[msgIndex].isFavorite = newFavStatus;
-            
-            // UI 즉시 업데이트
-            window.updateChatUI();
-            
-            const favModal = document.getElementById('favorites-modal');
-            if (favModal && !favModal.classList.contains('hidden')) window.renderFavorites();
-
-            // Firebase 연동
             if (db && window.currentUser && !msgId.startsWith('off-')) {
                 try {
-                    await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { isFavorite: newFavStatus });
-                } catch(e) { console.error("Favorite Error: ", e); }
+                    await deleteDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId));
+                } catch(e) { 
+                    console.error("Delete Single Msg Error: ", e); 
+                    alert("지우는 중에 에러가 났다, 음!"); 
+                }
+            } else {
+                window.allMessages = window.allMessages.filter(m => m.id !== msgId);
+                window.updateChatUI();
+                const archiveModal = document.getElementById('archive-modal');
+                if (archiveModal && !archiveModal.classList.contains('hidden')) window.renderArchive();
+                const favModal = document.getElementById('favorites-modal');
+                if (favModal && !favModal.classList.contains('hidden')) window.renderFavorites();
+            }
+        };
+
+        // ✏️ 연지 메시지 수정 로직
+        window.currentEditId = null;
+        window.editUserMsg = function(msgId) {
+            const msg = window.allMessages.find(m => m.id === msgId);
+            if(!msg) return;
+            window.currentEditId = msgId;
+            
+            let textToEdit = msg.text;
+            if (msg.tab === 'reframe' && textToEdit.startsWith('부정적 생각: ')) {
+                textToEdit = textToEdit.replace('부정적 생각: ', '');
+            }
+            
+            document.getElementById('edit-textarea').value = textToEdit;
+            const modal = document.getElementById('edit-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeEdit = function() {
+            const modal = document.getElementById('edit-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            window.currentEditId = null;
+        };
+
+        window.saveEdit = async function() {
+            const newTextRaw = document.getElementById('edit-textarea').value.trim();
+            if(!newTextRaw) return;
+            
+            const msgId = window.currentEditId;
+            const msg = window.allMessages.find(m => m.id === msgId);
+            if(!msg) return;
+            
+            let finalNewText = newTextRaw;
+            if (msg.tab === 'reframe' && !finalNewText.startsWith('부정적 생각: ')) {
+                 finalNewText = `부정적 생각: ${finalNewText}`;
+            }
+            
+            window.closeEdit();
+
+            if (db && window.currentUser && !msgId.startsWith('off-')) {
+                try {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { text: finalNewText });
+                } catch(e) { alert("수정에 실패했다, 음!"); }
+            } else {
+                msg.text = finalNewText;
+                window.updateChatUI();
+            }
+        };
+
+        // 🔄 데이다라 메시지 재생성 로직
+        window.regenerateMsg = async function(msgId) {
+            if(!confirm("이 대답이 마음에 안 든다고? 다시 말해주길 바라는 거냐, 음?")) return;
+            const targetMsg = window.allMessages.find(m => m.id === msgId);
+            if(!targetMsg) return;
+
+            const activityType = targetMsg.tab || window.currentTab;
+            const tabMsgs = window.allMessages.filter(m => (m.tab || 'vent') === activityType && !m.isArchived);
+            const msgIndex = tabMsgs.findIndex(m => m.id === msgId);
+
+            // 해당 대답의 직전까지의 대화 흐름 12개 추출
+            const historyMsgs = tabMsgs.slice(0, msgIndex).slice(-12);
+
+            // 해당 대답 직전의 연지 질문 찾기
+            let lastUserQuery = "(재생성 요청)";
+            for(let i = msgIndex - 1; i >= 0; i--) {
+                if(tabMsgs[i].role === 'user') {
+                    lastUserQuery = tabMsgs[i].text;
+                    break;
+                }
+            }
+
+            const originalText = targetMsg.text;
+            
+            // 로딩 처리 (화면 텍스트를 임시 변경)
+            if (db && window.currentUser && !msgId.startsWith('off-')) {
+                await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { text: "새로운 폭발을 준비 중이다, 음... 💣 (생각 중)" });
+            } else {
+                targetMsg.text = "새로운 폭발을 준비 중이다, 음... 💣 (생각 중)";
+                window.updateChatUI();
+            }
+
+            // AI 호출
+            const aiResponse = await callGeminiAPI(lastUserQuery, activityType, historyMsgs);
+
+            if (aiResponse && aiResponse.deidara) {
+                if (db && window.currentUser && !msgId.startsWith('off-')) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), {
+                        text: aiResponse.deidara,
+                        emotion: aiResponse.emotion || 'default',
+                        reframeGood: aiResponse.reframeGood || ''
+                    });
+                } else {
+                    targetMsg.text = aiResponse.deidara;
+                    targetMsg.emotion = aiResponse.emotion || 'default';
+                    targetMsg.reframeGood = aiResponse.reframeGood || '';
+                    window.updateChatUI();
+                }
+            } else {
+                // 실패 시 원래 텍스트로 복구
+                if (db && window.currentUser && !msgId.startsWith('off-')) {
+                    await updateDoc(doc(db, 'artifacts', appId, 'users', window.currentUser.uid, 'chats', msgId), { text: originalText });
+                } else {
+                    targetMsg.text = originalText;
+                    window.updateChatUI();
+                }
+                alert("통신 오류로 재생성에 실패했다, 음!");
             }
         };
 
@@ -951,8 +1050,9 @@
             }
         };
 
-        async function callGeminiAPI(userQuery, activityType) {
-            const historyMsgs = window.allMessages.filter(m => (m.tab || 'vent') === activityType && !m.isArchived).slice(-12);
+        // 🔥 파라미터에 customHistoryMsgs 추가
+        async function callGeminiAPI(userQuery, activityType, customHistoryMsgs = null) {
+            const historyMsgs = customHistoryMsgs || window.allMessages.filter(m => (m.tab || 'vent') === activityType && !m.isArchived).slice(-12);
             let historyText = "[이전 대화 흐름]\n";
             if (historyMsgs.length === 0) { historyText += "이전 대화 없음.\n"; } 
             else { historyMsgs.forEach(m => { historyText += `${m.role === 'user' ? '연지' : '데이다라'}: ${m.text}\n`; }); }
@@ -1047,4 +1147,3 @@ emotion 값: "default", "happy", "playful", "angry", "sad", "shy", "surprised"
     </script>
 </body>
 </html>
-
