@@ -154,16 +154,21 @@
                 </button>
             </header>
             
-            <div class="p-3 border-b border-zinc-800/50 shrink-0 flex items-center gap-2 bg-zinc-900/30">
-                <label class="text-[12px] text-zinc-400 font-medium ml-1">주제 필터:</label>
-                <select id="archive-tab-select" class="flex-1 bg-zinc-900 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-1.5 text-[13px] focus:outline-none focus:border-yellow-500" onchange="window.renderArchive()">
-                    <option value="all">모든 대화 보기</option>
-                    <option value="vent">감정 털어놓기</option>
-                    <option value="reframe">생각 비틀기</option>
-                    <option value="smallwin">일상 수행</option>
-                    <option value="motivate">동기 부여</option>
-                    <option value="breakdown">계획 쪼개기</option>
-                </select>
+            <div class="p-3 border-b border-zinc-800/50 shrink-0 flex items-center justify-between gap-2 bg-zinc-900/30">
+                <div class="flex items-center gap-2 flex-1">
+                    <label class="text-[12px] text-zinc-400 font-medium ml-1 shrink-0">주제 필터:</label>
+                    <select id="archive-tab-select" class="flex-1 bg-zinc-900 text-zinc-200 border border-zinc-700 rounded-lg px-3 py-1.5 text-[13px] focus:outline-none focus:border-yellow-500" onchange="window.renderArchive()">
+                        <option value="all">모든 대화 보기</option>
+                        <option value="vent">감정 털어놓기</option>
+                        <option value="reframe">생각 비틀기</option>
+                        <option value="smallwin">일상 수행</option>
+                        <option value="motivate">동기 부여</option>
+                        <option value="breakdown">계획 쪼개기</option>
+                    </select>
+                </div>
+                <button onclick="window.deleteAllArchived()" class="shrink-0 bg-red-950/40 hover:bg-red-900/60 text-red-400 text-[12px] px-3 py-1.5 rounded-lg border border-red-900/50 transition-colors flex items-center gap-1 font-medium">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> 전체 비우기
+                </button>
             </div>
             <div id="archive-container" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-2 chat-scroll bg-zinc-950/50"></div>
         </div>
